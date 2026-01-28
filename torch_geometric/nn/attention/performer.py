@@ -2,6 +2,7 @@ import math
 from typing import Callable, Optional
 
 import torch
+import torch.nn.functional as F
 from torch import Tensor
 
 
@@ -145,7 +146,8 @@ class PerformerAttention(torch.nn.Module):
         self.dropout = torch.nn.Dropout(dropout)
 
     def forward(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
-        r"""Forward pass.
+        """Forward pass.
+
 
         Args:
             x (torch.Tensor): Node feature tensor
@@ -157,15 +159,30 @@ class PerformerAttention(torch.nn.Module):
                 the valid nodes for each graph. (default: :obj:`None`)
         """
         B, N, *_ = x.shape
-        q, k, v = self.q(x), self.k(x), self.v(x)
-        # Reshape and permute q, k and v to proper shape
-        # (B, N, num_heads * head_channels) to (b, num_heads, n, head_channels)
-        q, k, v = map(
-            lambda t: t.reshape(B, N, self.heads, self.head_channels).permute(
-                0, 2, 1, 3), (q, k, v))
+        # Fuse q, k, v projections into a single linear operation by
+        # concatenating weights and biases to perform one big GEMM instead
+        # of three separate ones.
+        # Note: We use the parameters of self.q, self.k, self.v directly
+        # to avoid changing module attributes visible externally.
+        weights = torch.cat([self.q.weight, self.k.weight, self.v.weight], dim=0)
+        if self.q.bias is not None:
+            biases = torch.cat([self.q.bias, self.k.bias, self.v.bias], dim=0)
+        else:
+            biases = None
+
+        qkv = F.linear(x, weights, biases)  # shape: (B, N, 3 * inner_channels)
+
+        # Reshape and permute once, then split into q, k, v views to avoid
+        # repeated reshape/permute work for each tensor.
+        qkv = qkv.view(B, N, 3, self.heads, self.head_channels).permute(2, 0, 3, 1, 4)
+        q, k, v = qkv[0], qkv[1], qkv[2]  # each has shape (B, heads, N, head_channels)
+
         if mask is not None:
             mask = mask[:, None, :, None]
-            v.masked_fill_(~mask, 0.)
+            # Use out-of-place masked_fill to avoid modifying q/k views that
+            # share the same underlying storage as v (preserve original semantics).
+            v = v.masked_fill(~mask, 0.)
+
         out = self.fast_attn(q, k, v)
         out = out.permute(0, 2, 1, 3).reshape(B, N, -1)
         out = self.attn_out(out)
