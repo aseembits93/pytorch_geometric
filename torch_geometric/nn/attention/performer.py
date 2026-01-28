@@ -35,7 +35,7 @@ def orthogonal_matrix(num_rows: int, num_cols: int) -> Tensor:
 
 
 def linear_attention(q: Tensor, k: Tensor, v: Tensor) -> Tensor:
-    r"""Efficient attention mechanism from the
+    """Efficient attention mechanism from the
     `"Rethinking Attention with Performers"
     <https://arxiv.org/abs/2009.14794>`_ paper.
 
@@ -43,10 +43,15 @@ def linear_attention(q: Tensor, k: Tensor, v: Tensor) -> Tensor:
         \mathbf{\hat{D}}^{-1}(\mathbf{Q}'((\mathbf{K}')^{\top} \mathbf{V}))
 
     """
-    D_inv = 1.0 / (q @ k.sum(dim=-2).unsqueeze(-1))
+    # sum over key sequence dimension once and reuse
+    k_sum = k.sum(dim=-2)
+    # compute denominator and its reciprocal (keep last dim for broadcasting)
+    D_inv = (q @ k_sum.unsqueeze(-1)).reciprocal()
+    # compute key-value and then q @ (k^T v)
     kv = k.transpose(-2, -1) @ v
     qkv = q @ kv
-    out = torch.einsum('...L,...Ld->...Ld', D_inv.squeeze(-1), qkv)
+    # elementwise multiply using broadcasting instead of einsum
+    out = qkv * D_inv
     return out
 
 
