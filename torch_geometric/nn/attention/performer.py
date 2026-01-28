@@ -43,10 +43,10 @@ def linear_attention(q: Tensor, k: Tensor, v: Tensor) -> Tensor:
         \mathbf{\hat{D}}^{-1}(\mathbf{Q}'((\mathbf{K}')^{\top} \mathbf{V}))
 
     """
-    D_inv = 1.0 / (q @ k.sum(dim=-2).unsqueeze(-1))
+    D_inv = (q @ k.sum(dim=-2).unsqueeze(-1)).reciprocal()
     kv = k.transpose(-2, -1) @ v
     qkv = q @ kv
-    out = torch.einsum('...L,...Ld->...Ld', D_inv.squeeze(-1), qkv)
+    out = qkv * D_inv
     return out
 
 
