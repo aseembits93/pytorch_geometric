@@ -6,7 +6,7 @@ from torch import Tensor
 
 
 def _orthogonal_matrix(dim: int) -> Tensor:
-    """Get an orthogonal matrix by applying QR decomposition."""
+    r"""Get an orthogonal matrix by applying QR decomposition."""
     # Random matrix from normal distribution
     # allocate directly on CPU to avoid unnecessary device-to-host copy if default device is GPU
     mat = torch.empty((dim, dim), device='cpu', dtype=torch.get_default_dtype())
