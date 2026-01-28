@@ -6,11 +6,13 @@ from torch import Tensor
 
 
 def _orthogonal_matrix(dim: int) -> Tensor:
-    r"""Get an orthogonal matrix by applying QR decomposition."""
+    """Get an orthogonal matrix by applying QR decomposition."""
     # Random matrix from normal distribution
-    mat = torch.randn((dim, dim))
+    # allocate directly on CPU to avoid unnecessary device-to-host copy if default device is GPU
+    mat = torch.empty((dim, dim), device='cpu', dtype=torch.get_default_dtype())
+    mat.normal_()
     # QR decomposition to two orthogonal matrices
-    q, _ = torch.linalg.qr(mat.cpu(), mode='reduced')
+    q, _ = torch.linalg.qr(mat, mode='reduced')
     return q.t()
 
 
