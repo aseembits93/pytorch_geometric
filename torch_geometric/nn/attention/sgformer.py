@@ -40,7 +40,8 @@ class SGFormerAttention(torch.nn.Module):
         self.v = torch.nn.Linear(channels, inner_channels, bias=qkv_bias)
 
     def forward(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
-        r"""Forward pass.
+        """Forward pass.
+
 
         Args:
             x (torch.Tensor): Node feature tensor
@@ -55,35 +56,41 @@ class SGFormerAttention(torch.nn.Module):
         qs, ks, vs = self.q(x), self.k(x), self.v(x)
         # reshape and permute q, k and v to proper shape
         # (b, n, num_heads * head_channels) to (b, n, num_heads, head_channels)
-        qs, ks, vs = map(
-            lambda t: t.reshape(B, N, self.heads, self.head_channels),
-            (qs, ks, vs))
+        qs = qs.reshape(B, N, self.heads, self.head_channels)
+        ks = ks.reshape(B, N, self.heads, self.head_channels)
+        vs = vs.reshape(B, N, self.heads, self.head_channels)
+
 
         if mask is not None:
             mask = mask[:, :, None, None]
             vs.masked_fill_(~mask, 0.)
         # replace 0's with epsilon
         epsilon = 1e-6
-        qs[qs == 0] = epsilon
-        ks[ks == 0] = epsilon
+        qs.masked_fill_(qs == 0, epsilon)
+        ks.masked_fill_(ks == 0, epsilon)
         # normalize input, shape not changed
-        qs, ks = map(
-            lambda t: t / torch.linalg.norm(t, ord=2, dim=-1, keepdim=True),
-            (qs, ks))
+        qs = qs / torch.linalg.norm(qs, ord=2, dim=-1, keepdim=True)
+        ks = ks / torch.linalg.norm(ks, ord=2, dim=-1, keepdim=True)
 
         # numerator
-        kvs = torch.einsum("blhm,blhd->bhmd", ks, vs)
-        attention_num = torch.einsum("bnhm,bhmd->bnhd", qs, kvs)
+        # kvs: (B, H, M, D) computed as sum over N of ks[b, n, h, m] * vs[b, n, h, d]
+        ks_p = ks.permute(0, 2, 1, 3)  # B, H, N, M
+        vs_p = vs.permute(0, 2, 1, 3)  # B, H, N, D
+        kvs = torch.matmul(ks_p.transpose(-2, -1), vs_p)  # B, H, M, D
+
+        # attention_num: for each head, qs[b, n, h, m] @ kvs[b, h, m, d] -> B, H, N, D
+        qs_p = qs.permute(0, 2, 1, 3)  # B, H, N, M
+        attention_num_p = torch.matmul(qs_p, kvs)  # B, H, N, D
+        attention_num = attention_num_p.permute(0, 2, 1, 3)  # B, N, H, D
+
         attention_num += N * vs
 
         # denominator
-        all_ones = torch.ones([B, N]).to(ks.device)
-        ks_sum = torch.einsum("blhm,bl->bhm", ks, all_ones)
-        attention_normalizer = torch.einsum("bnhm,bhm->bnh", qs, ks_sum)
+        ks_sum = ks.sum(dim=1)  # B, H, M
+        attention_normalizer = (qs * ks_sum[:, None, :, :]).sum(dim=-1)  # B, N, H
         # attentive aggregated results
-        attention_normalizer = torch.unsqueeze(attention_normalizer,
-                                               len(attention_normalizer.shape))
-        attention_normalizer += torch.ones_like(attention_normalizer) * N
+        attention_normalizer = attention_normalizer.unsqueeze(-1)
+        attention_normalizer = attention_normalizer + N
         attn_output = attention_num / attention_normalizer
 
         return attn_output.mean(dim=2)
