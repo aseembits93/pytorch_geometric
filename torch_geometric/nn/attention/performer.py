@@ -6,31 +6,42 @@ from torch import Tensor
 
 @torch.compile
 def _orthogonal_matrix(dim: int) -> Tensor:
-    r"""Get an orthogonal matrix by applying QR decomposition."""
+    """Get an orthogonal matrix by applying QR decomposition."""
     # Random matrix from normal distribution
-    mat = torch.randn((dim, dim))
+    # Create directly on CPU and fill in-place to avoid extra device transfers.
+    mat = torch.empty((dim, dim), dtype=torch.get_default_dtype(), device='cpu').normal_()
     # QR decomposition to two orthogonal matrices
-    q, _ = torch.linalg.qr(mat.cpu(), mode='reduced')
+    q, _ = torch.linalg.qr(mat, mode='reduced')
     return q.t()
 
 @torch.compile
 def orthogonal_matrix(num_rows: int, num_cols: int) -> Tensor:
-    r"""Generate an orthogonal matrix with `num_rows` rows
+    """Generate an orthogonal matrix with `num_rows` rows
     and `num_cols` columns.
     """
-    num_full_blocks = int(num_rows / num_cols)
-    blocks = []
+    # Preserve original division behavior (ZeroDivisionError if num_cols == 0)
+    num_full_blocks, remain_rows = divmod(num_rows, num_cols)
+
+    # Match original behavior: when num_rows == 0 torch.cat([]) would raise ValueError.
+    # Preserve that by explicitly raising ValueError in that case.
+    if num_rows == 0:
+        raise ValueError("need at least one tensor to concatenate")
+
+    # Preallocate the final matrix on CPU using the default dtype to avoid
+    # intermediate concatenations and unnecessary device transfers.
+    mat = torch.empty((num_rows, num_cols), dtype=torch.get_default_dtype(), device='cpu')
+
+    # Fill blocks in-place to reduce temporary allocations and Python overhead.
+    offset = 0
     for _ in range(num_full_blocks):
         q = _orthogonal_matrix(num_cols)
-        blocks.append(q)
-    remain_rows = num_rows - num_full_blocks * num_cols
+        mat[offset:offset + num_cols] = q
+        offset += num_cols
+
     if remain_rows > 0:
         q = _orthogonal_matrix(num_cols)
-        blocks.append(q[:remain_rows])
-    mat = torch.cat(blocks)
-    # multiplier = torch.randn((num_rows, num_cols)).norm(dim=1)
-    # scaler = torch.diag(multiplier)
-    # mat = scaler @ mat
+        mat[offset:offset + remain_rows] = q[:remain_rows]
+
     return mat
 
 @torch.compile
