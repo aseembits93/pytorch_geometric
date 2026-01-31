@@ -77,12 +77,18 @@ class PolynormerAttention(torch.nn.Module):
             v.masked_fill_(~mask, 0.)
 
         # numerator
-        kv = torch.einsum('bndh, bnmh -> bdmh', k, v)
-        num = torch.einsum('bndh, bdmh -> bnmh', q, kv)
+        k_p = k.permute(0, 3, 1, 2)
+        v_p = v.permute(0, 3, 1, 2)
+        kv = torch.matmul(k_p.transpose(-2, -1), v_p)
+        
+        q_p = q.permute(0, 3, 1, 2)
+        num_p = torch.matmul(q_p, kv)
+        num = num_p.permute(0, 2, 3, 1)
 
         # denominator
-        k_sum = torch.einsum('bndh -> bdh', k)
-        den = torch.einsum('bndh, bdh -> bnh', q, k_sum).unsqueeze(2)
+        k_sum = k_p.sum(dim=2)
+        den_p = (q_p * k_sum.unsqueeze(2)).sum(-1)
+        den = den_p.permute(0, 2, 1).unsqueeze(2)
 
         # linear global attention based on kernel trick
         x = (num / (den + 1e-6)).reshape(B, N, -1)
