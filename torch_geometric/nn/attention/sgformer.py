@@ -3,7 +3,7 @@ from typing import Optional
 import torch
 from torch import Tensor
 
-
+@torch.compile
 class SGFormerAttention(torch.nn.Module):
     r"""The simple global attention mechanism from the
     `"SGFormer: Simplifying and Empowering Transformers for

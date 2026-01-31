@@ -2,7 +2,7 @@ from typing import Callable
 
 import torch
 
-
+@torch.compile
 class QFormer(torch.nn.Module):
     r"""The Querying Transformer (Q-Former) from
     `"BLIP-2: Bootstrapping Language-Image Pre-training

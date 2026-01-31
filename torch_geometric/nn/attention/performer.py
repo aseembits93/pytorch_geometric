@@ -94,7 +94,7 @@ class PerformerProjection(torch.nn.Module):
         out = linear_attention(q, k, v)
         return out
 
-
+@torch.compile
 class PerformerAttention(torch.nn.Module):
     r"""The linear scaled attention mechanism from the
     `"Rethinking Attention with Performers"
