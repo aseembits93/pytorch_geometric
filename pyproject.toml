@@ -234,3 +234,10 @@ exclude_lines = [
 
 [tool.setuptools]
 py-modules = []
+
+[tool.codeflash]
+# All paths are relative to this pyproject.toml's directory.
+module-root = "torch_geometric"
+tests-root = "test/nn/attention"
+ignore-paths = []
+formatter-cmds = ["disabled"]
