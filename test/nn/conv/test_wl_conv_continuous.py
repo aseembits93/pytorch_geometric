@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 import torch_geometric.typing
@@ -6,7 +7,23 @@ from torch_geometric.testing import is_full_test
 from torch_geometric.typing import SparseTensor
 
 
-def test_wl_conv():
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
+def test_wl_conv(device):
     edge_index = torch.tensor([[0, 1, 1, 2], [1, 0, 2, 1]], dtype=torch.long)
     x = torch.tensor([[-1], [0], [1]], dtype=torch.float)
 
@@ -24,7 +41,7 @@ def test_wl_conv():
         jit = torch.jit.script(conv)
         assert torch.allclose(jit(x, edge_index), out)
         if torch_geometric.typing.WITH_TORCH_SPARSE:
-            assert torch.allclose(jit(x, adj.t()), out, atol=1e-6)
+            assert torch.allclose(jit(x, adj.t()), out)
 
     # Test bipartite message passing:
     x1 = torch.randn(4, 8)
@@ -49,5 +66,5 @@ def test_wl_conv():
         assert torch.allclose(jit((x1, x2), edge_index, edge_weight), out2)
 
         if torch_geometric.typing.WITH_TORCH_SPARSE:
-            assert torch.allclose(jit((x1, None), adj.t()), out1, atol=1e-6)
-            assert torch.allclose(jit((x1, x2), adj.t()), out2, atol=1e-6)
+            assert torch.allclose(jit((x1, None), adj.t()), out1)
+            assert torch.allclose(jit((x1, x2), adj.t()), out2)

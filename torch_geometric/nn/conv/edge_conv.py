@@ -14,6 +14,7 @@ else:
     knn = None
 
 
+@torch.compile
 class EdgeConv(MessagePassing):
     r"""The edge convolutional operator from the `"Dynamic Graph CNN for
     Learning on Point Clouds" <https://arxiv.org/abs/1801.07829>`_ paper.
@@ -68,6 +69,7 @@ class EdgeConv(MessagePassing):
         return f'{self.__class__.__name__}(nn={self.nn})'
 
 
+@torch.compile
 class DynamicEdgeConv(MessagePassing):
     r"""The dynamic edge convolutional operator from the `"Dynamic Graph CNN
     for Learning on Point Clouds" <https://arxiv.org/abs/1801.07829>`_ paper

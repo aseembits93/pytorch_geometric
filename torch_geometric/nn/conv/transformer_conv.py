@@ -23,6 +23,7 @@ else:
     from torch.jit import _overload_method as overload
 
 
+@torch.compile
 class TransformerConv(MessagePassing):
     r"""The graph transformer operator from the `"Masked Label Prediction:
     Unified Message Passing Model for Semi-Supervised Classification"

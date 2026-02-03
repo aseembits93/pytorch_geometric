@@ -18,6 +18,7 @@ else:
     spline_basis = spline_weighting = None
 
 
+@torch.compile
 class SplineConv(MessagePassing):
     r"""The spline-based convolutional operator from the `"SplineCNN: Fast
     Geometric Deep Learning with Continuous B-Spline Kernels"

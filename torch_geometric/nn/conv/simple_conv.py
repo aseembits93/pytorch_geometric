@@ -16,6 +16,7 @@ from torch_geometric.typing import (
 from torch_geometric.utils import add_self_loops, spmm
 
 
+@torch.compile
 class SimpleConv(MessagePassing):
     r"""A simple message passing operator that performs (non-trainable)
     propagation.

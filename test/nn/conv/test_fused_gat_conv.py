@@ -1,8 +1,25 @@
+import pytest
 import torch
 
 from torch_geometric.nn import FusedGATConv
 from torch_geometric.testing import onlyCUDA, withPackage
 
+
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
 
 def test_to_graph_format() -> None:
     edge_index = torch.tensor([[1, 0, 2, 3], [0, 0, 1, 1]])

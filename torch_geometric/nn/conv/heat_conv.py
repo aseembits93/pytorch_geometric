@@ -11,6 +11,7 @@ from torch_geometric.typing import Adj, OptTensor
 from torch_geometric.utils import softmax
 
 
+@torch.compile
 class HEATConv(MessagePassing):
     r"""The heterogeneous edge-enhanced graph attentional operator from the
     `"Heterogeneous Edge-Enhanced Graph Attention Network For Multi-Agent

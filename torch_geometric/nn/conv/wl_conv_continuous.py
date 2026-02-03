@@ -1,5 +1,6 @@
 from typing import Union
 
+import torch
 from torch import Tensor
 
 from torch_geometric.nn.conv import MessagePassing
@@ -13,6 +14,7 @@ from torch_geometric.typing import (
 from torch_geometric.utils import scatter, spmm
 
 
+@torch.compile
 class WLConvContinuous(MessagePassing):
     r"""The Weisfeiler Lehman operator from the `"Wasserstein
     Weisfeiler-Lehman Graph Kernels" <https://arxiv.org/abs/1906.01277>`_

@@ -211,6 +211,7 @@ filterwarnings = [
     "ignore:.*torch.jit.*:DeprecationWarning",
 ]
 markers = [
+    "cuda: marks tests as requiring CUDA (deselect with '-m \"not cuda\"')",
     "rag: mark test as RAG test",
 ]
 
@@ -234,3 +235,10 @@ exclude_lines = [
 
 [tool.setuptools]
 py-modules = []
+
+[tool.codeflash]
+# All paths are relative to this pyproject.toml's directory.
+module-root = "torch_geometric"
+tests-root = "test/nn/attention"
+ignore-paths = []
+formatter-cmds = ["disabled"]

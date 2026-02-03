@@ -22,6 +22,7 @@ from torch_geometric.utils import (
 )
 
 
+@torch.compile
 class SuperGATConv(MessagePassing):
     r"""The self-supervised graph attentional operator from the `"How to Find
     Your Friendly Neighborhood: Graph Attention Design with Self-Supervision"

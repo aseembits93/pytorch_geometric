@@ -12,6 +12,7 @@ from torch_geometric.typing import Adj, OptTensor, SparseTensor, torch_sparse
 from torch_geometric.utils import add_remaining_self_loops, scatter, spmm
 
 
+@torch.compile
 class EGConv(MessagePassing):
     r"""The Efficient Graph Convolution from the `"Adaptive Filters and
     Aggregator Fusion for Efficient Graph Convolutions"

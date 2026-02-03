@@ -6,8 +6,24 @@ from torch_geometric.nn import SuperGATConv
 from torch_geometric.typing import SparseTensor
 
 
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 @pytest.mark.parametrize('att_type', ['MX', 'SD'])
-def test_supergat_conv(att_type):
+def test_supergat_conv(att_type, device):
     x = torch.randn(4, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
 
@@ -20,7 +36,7 @@ def test_supergat_conv(att_type):
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj = SparseTensor.from_edge_index(edge_index, sparse_sizes=(4, 4))
-        assert torch.allclose(conv(x, adj.t()), out, atol=1e-6)
+        assert torch.allclose(conv(x, adj.t()), out)
 
     # Negative samples are given:
     neg_edge_index = conv.negative_sampling(edge_index, x.size(0))

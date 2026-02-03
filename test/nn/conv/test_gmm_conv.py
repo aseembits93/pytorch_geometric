@@ -8,8 +8,24 @@ from torch_geometric.typing import SparseTensor
 from torch_geometric.utils import to_torch_coo_tensor
 
 
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 @pytest.mark.parametrize('separate_gaussians', [True, False])
-def test_gmm_conv(separate_gaussians):
+def test_gmm_conv(separate_gaussians, device):
     x1 = torch.randn(4, 8)
     x2 = torch.randn(2, 16)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
@@ -74,7 +90,7 @@ def test_gmm_conv(separate_gaussians):
 
 
 @pytest.mark.parametrize('separate_gaussians', [True, False])
-def test_lazy_gmm_conv(separate_gaussians):
+def test_lazy_gmm_conv(separate_gaussians, device):
     x1 = torch.randn(4, 8)
     x2 = torch.randn(2, 16)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])

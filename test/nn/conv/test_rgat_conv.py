@@ -8,6 +8,22 @@ from torch_geometric.typing import SparseTensor
 from torch_geometric.utils import to_torch_coo_tensor
 
 
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 @pytest.mark.parametrize('mod', [
     'additive',
     'scaled',
@@ -24,7 +40,7 @@ from torch_geometric.utils import to_torch_coo_tensor
 ])
 @pytest.mark.parametrize('concat', [True, False])
 @pytest.mark.parametrize('edge_dim', [8, None])
-def test_rgat_conv(mod, attention_mechanism, attention_mode, concat, edge_dim):
+def test_rgat_conv(mod, attention_mechanism, attention_mode, concat, edge_dim, device):
     x = torch.randn(4, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
     edge_type = torch.tensor([0, 2, 1, 2])
@@ -98,7 +114,7 @@ def test_rgat_conv(mod, attention_mechanism, attention_mode, concat, edge_dim):
         assert alpha.size() == (4, 2)
 
 
-def test_rgat_conv_jit():
+def test_rgat_conv_jit(device):
     x = torch.randn(4, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
     edge_attr = torch.randn((edge_index.size(1), 8))
@@ -114,11 +130,11 @@ def test_rgat_conv_jit():
     assert out.size() == (4, 40)
     # t() expects a tensor with <= 2 sparse and 0 dense dimensions
     adj1_t = adj1.transpose(0, 1).coalesce()
-    assert torch.allclose(conv(x, adj1_t, edge_type), out, atol=1e-6)
+    assert torch.allclose(conv(x, adj1_t, edge_type), out)
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj2 = SparseTensor.from_edge_index(edge_index, edge_attr, (4, 4))
-        assert torch.allclose(conv(x, adj2.t(), edge_type), out, atol=1e-6)
+        assert torch.allclose(conv(x, adj2.t(), edge_type), out)
 
     if is_full_test():
         jit = torch.jit.script(conv)

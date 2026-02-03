@@ -1,5 +1,6 @@
 from typing import Callable, Optional, Tuple, Union
 
+import torch
 from torch import Tensor
 
 from torch_geometric.nn.conv import MessagePassing
@@ -15,6 +16,7 @@ from torch_geometric.typing import (
 from torch_geometric.utils import add_self_loops, remove_self_loops, softmax
 
 
+@torch.compile
 class PointTransformerConv(MessagePassing):
     r"""The Point Transformer layer from the `"Point Transformer"
     <https://arxiv.org/abs/2012.09164>`_ paper.

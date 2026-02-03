@@ -12,6 +12,7 @@ from torch_geometric.nn.inits import kaiming_uniform, uniform
 from torch_geometric.typing import Adj, OptPairTensor, OptTensor, SparseTensor
 
 
+@torch.compile
 class Linear(torch.nn.Module):
     def __init__(self, in_channels, out_channels, groups=1, bias=True):
         super().__init__()
@@ -59,6 +60,7 @@ class Linear(torch.nn.Module):
                 f'{self.out_channels}, groups={self.groups})')
 
 
+@torch.compile
 def restricted_softmax(src, dim: int = -1, margin: float = 0.):
     src_max = torch.clamp(src.max(dim=dim, keepdim=True)[0], min=0.)
     out = (src - src_max).exp()
@@ -66,6 +68,7 @@ def restricted_softmax(src, dim: int = -1, margin: float = 0.):
     return out
 
 
+@torch.compile
 class Attention(torch.nn.Module):
     def __init__(self, dropout=0):
         super().__init__()
@@ -96,6 +99,7 @@ class Attention(torch.nn.Module):
         return f'{self.__class__.__name__}(dropout={self.dropout})'
 
 
+@torch.compile
 class MultiHead(Attention):
     def __init__(self, in_channels, out_channels, heads=1, groups=1, dropout=0,
                  bias=True):
@@ -167,6 +171,7 @@ class MultiHead(Attention):
                 f'bias={self.bias})')
 
 
+@torch.compile
 class DNAConv(MessagePassing):
     r"""The dynamic neighborhood aggregation operator from the `"Just Jump:
     Towards Dynamic Neighborhood Aggregation in Graph Neural Networks"

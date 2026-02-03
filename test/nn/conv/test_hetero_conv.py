@@ -22,9 +22,24 @@ from torch_geometric.testing import (
     withPackage,
 )
 
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 
 @pytest.mark.parametrize('aggr', ['sum', 'mean', 'min', 'max', 'cat', None])
-def test_hetero_conv(aggr):
+def test_hetero_conv(aggr, device):
     data = HeteroData()
     data['paper'].x = torch.randn(50, 32)
     data['author'].x = torch.randn(30, 64)
@@ -71,7 +86,7 @@ def test_hetero_conv(aggr):
         assert out_dict['author'].size() == (30, 1, 64)
 
 
-def test_gcn2_hetero_conv():
+def test_gcn2_hetero_conv(device):
     data = HeteroData()
     data['paper'].x = torch.randn(50, 32)
     data['author'].x = torch.randn(30, 64)
@@ -108,7 +123,7 @@ class CustomConv(MessagePassing):
         return self.lin(torch.cat([x_j, y_j, z_j], dim=-1))
 
 
-def test_hetero_conv_with_custom_conv():
+def test_hetero_conv_with_custom_conv(device):
     data = HeteroData()
     data['paper'].x = torch.randn(50, 32)
     data['paper'].y = torch.randn(50, 3)
@@ -139,13 +154,13 @@ class MessagePassingLoops(MessagePassing):
         self.add_self_loops = True
 
 
-def test_hetero_conv_self_loop_error():
+def test_hetero_conv_self_loop_error(device):
     HeteroConv({('a', 'to', 'a'): MessagePassingLoops()})
     with pytest.raises(ValueError, match="incorrect message passing"):
         HeteroConv({('a', 'to', 'b'): MessagePassingLoops()})
 
 
-def test_hetero_conv_with_dot_syntax_node_types():
+def test_hetero_conv_with_dot_syntax_node_types(device):
     data = HeteroData()
     data['src.paper'].x = torch.randn(50, 32)
     data['author'].x = torch.randn(30, 64)
@@ -205,7 +220,7 @@ def test_compile_hetero_conv_graph_breaks(device):
     out = compiled_conv(data.x_dict, data.edge_index_dict)
     assert len(out) == len(expected)
     for key in expected.keys():
-        assert torch.allclose(out[key], expected[key], atol=1e-6)
+        assert torch.allclose(out[key], expected[key])
 
 
 if __name__ == '__main__':

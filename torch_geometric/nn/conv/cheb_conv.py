@@ -11,6 +11,7 @@ from torch_geometric.typing import OptTensor
 from torch_geometric.utils import get_laplacian
 
 
+@torch.compile
 class ChebConv(MessagePassing):
     r"""The chebyshev spectral graph convolutional operator from the
     `"Convolutional Neural Networks on Graphs with Fast Localized Spectral

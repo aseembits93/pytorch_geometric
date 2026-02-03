@@ -10,6 +10,7 @@ from torch_geometric.typing import Adj, SparseTensor
 from torch_geometric.utils import is_torch_sparse_tensor, spmm
 
 
+@torch.compile
 class PANConv(MessagePassing):
     r"""The path integral based convolutional operator from the
     `"Path Integral Based Convolution and Pooling for Graph Neural Networks"

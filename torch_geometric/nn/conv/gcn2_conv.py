@@ -12,6 +12,7 @@ from torch_geometric.typing import Adj, OptPairTensor, OptTensor, SparseTensor
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class GCN2Conv(MessagePassing):
     r"""The graph convolutional operator with initial residual connections and
     identity mapping (GCNII) from the `"Simple and Deep Graph Convolutional

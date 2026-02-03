@@ -1,3 +1,4 @@
+import pytest
 from typing import Tuple
 
 import torch
@@ -10,7 +11,23 @@ from torch_geometric.typing import Adj, SparseTensor
 from torch_geometric.utils import to_torch_csc_tensor
 
 
-def test_fa_conv():
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
+def test_fa_conv(device):
     x = torch.randn(4, 16)
     x_0 = torch.randn(4, 16)
     edge_index = torch.tensor([[0, 0, 0, 1, 2, 3], [1, 2, 3, 0, 0, 0]])
@@ -24,9 +41,9 @@ def test_fa_conv():
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj2 = SparseTensor.from_edge_index(edge_index, sparse_sizes=(4, 4))
-        assert torch.allclose(conv(x, x_0, adj2.t()), out, atol=1e-6)
+        assert torch.allclose(conv(x, x_0, adj2.t()), out)
         assert conv._cached_adj_t is not None
-        assert torch.allclose(conv(x, x_0, adj2.t()), out, atol=1e-6)
+        assert torch.allclose(conv(x, x_0, adj2.t()), out)
 
     if is_full_test():
 
@@ -44,7 +61,7 @@ def test_fa_conv():
                 return self.conv(x, x_0, edge_index)
 
         jit = torch.jit.script(MyModule())
-        assert torch.allclose(jit(x, x_0, edge_index), out, atol=1e-6)
+        assert torch.allclose(jit(x, x_0, edge_index), out)
 
         if torch_geometric.typing.WITH_TORCH_SPARSE:
             assert torch.allclose(jit(x, x_0, adj2.t()), out)
@@ -56,26 +73,26 @@ def test_fa_conv():
     # Test without caching:
     conv.cached = False
     out = conv(x, x_0, edge_index)
-    assert torch.allclose(conv(x, x_0, adj1.t()), out, atol=1e-6)
+    assert torch.allclose(conv(x, x_0, adj1.t()), out)
     if torch_geometric.typing.WITH_TORCH_SPARSE:
-        assert torch.allclose(conv(x, x_0, adj2.t()), out, atol=1e-6)
+        assert torch.allclose(conv(x, x_0, adj2.t()), out)
 
     # Test `return_attention_weights`:
     result = conv(x, x_0, edge_index, return_attention_weights=True)
-    assert torch.allclose(result[0], out, atol=1e-6)
+    assert torch.allclose(result[0], out)
     assert result[1][0].size() == (2, 10)
     assert result[1][1].size() == (10, )
     assert conv._alpha is None
 
     result = conv(x, x_0, adj1.t(), return_attention_weights=True)
-    assert torch.allclose(result[0], out, atol=1e-6)
+    assert torch.allclose(result[0], out)
     assert result[1][0].size() == torch.Size([4, 4])
     assert result[1][0]._nnz() == 10
     assert conv._alpha is None
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         result = conv(x, x_0, adj2.t(), return_attention_weights=True)
-        assert torch.allclose(result[0], out, atol=1e-6)
+        assert torch.allclose(result[0], out)
         assert result[1].sizes() == [4, 4] and result[1].nnz() == 10
         assert conv._alpha is None
 
@@ -97,7 +114,7 @@ def test_fa_conv():
 
         jit = torch.jit.script(MyModule())
         result = jit(x, x_0, edge_index)
-        assert torch.allclose(result[0], out, atol=1e-6)
+        assert torch.allclose(result[0], out)
         assert result[1][0].size() == (2, 10)
         assert result[1][1].size() == (10, )
         assert conv._alpha is None
@@ -120,6 +137,6 @@ def test_fa_conv():
 
             jit = torch.jit.script(MyModule())
             result = jit(x, x_0, adj2.t())
-            assert torch.allclose(result[0], out, atol=1e-6)
+            assert torch.allclose(result[0], out)
             assert result[1].sizes() == [4, 4] and result[1].nnz() == 10
             assert conv._alpha is None

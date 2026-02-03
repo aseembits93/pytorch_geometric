@@ -1,3 +1,4 @@
+import torch
 from torch import Tensor
 
 from torch_geometric.nn.conv import MessagePassing
@@ -6,6 +7,7 @@ from torch_geometric.typing import Adj, OptTensor, SparseTensor
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class LGConv(MessagePassing):
     r"""The Light Graph Convolution (LGC) operator from the `"LightGCN:
     Simplifying and Powering Graph Convolution Network for Recommendation"

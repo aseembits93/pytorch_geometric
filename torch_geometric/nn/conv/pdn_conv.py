@@ -9,6 +9,7 @@ from torch_geometric.typing import Adj, OptTensor, SparseTensor
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class PDNConv(MessagePassing):
     r"""The pathfinder discovery network convolutional operator from the
     `"Pathfinder Discovery Networks for Neural Message Passing"

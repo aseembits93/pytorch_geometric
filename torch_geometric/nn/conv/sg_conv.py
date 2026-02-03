@@ -1,5 +1,6 @@
 from typing import Optional
 
+import torch
 from torch import Tensor
 
 from torch_geometric.nn.conv import MessagePassing
@@ -9,6 +10,7 @@ from torch_geometric.typing import Adj, OptTensor, SparseTensor
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class SGConv(MessagePassing):
     r"""The simple graph convolutional operator from the `"Simplifying Graph
     Convolutional Networks" <https://arxiv.org/abs/1902.07153>`_ paper.

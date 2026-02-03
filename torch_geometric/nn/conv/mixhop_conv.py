@@ -12,6 +12,7 @@ from torch_geometric.typing import Adj, OptTensor, SparseTensor
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class MixHopConv(MessagePassing):
     r"""The Mix-Hop graph convolutional operator from the
     `"MixHop: Higher-Order Graph Convolutional Architectures via Sparsified

@@ -7,8 +7,24 @@ from torch_geometric.testing import is_full_test
 from torch_geometric.typing import SparseTensor
 
 
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 @pytest.mark.parametrize('concat', [True, False])
-def test_heat_conv(concat):
+def test_heat_conv(concat, device):
     x = torch.randn(4, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
     edge_attr = torch.randn((4, 2))
@@ -25,8 +41,7 @@ def test_heat_conv(concat):
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj = SparseTensor.from_edge_index(edge_index, edge_attr, (4, 4))
-        assert torch.allclose(conv(x, adj.t(), node_type, edge_type), out,
-                              atol=1e-5)
+        assert torch.allclose(conv(x, adj.t(), node_type, edge_type), out)
 
     if is_full_test():
         jit = torch.jit.script(conv)
@@ -35,5 +50,4 @@ def test_heat_conv(concat):
             atol=1e-5)
 
         if torch_geometric.typing.WITH_TORCH_SPARSE:
-            assert torch.allclose(jit(x, adj.t(), node_type, edge_type), out,
-                                  atol=1e-5)
+            assert torch.allclose(jit(x, adj.t(), node_type, edge_type), out)

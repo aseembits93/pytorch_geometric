@@ -8,6 +8,22 @@ from torch_geometric.nn import PNAConv
 from torch_geometric.testing import is_full_test, onlyNeighborSampler
 from torch_geometric.typing import SparseTensor
 
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 aggregators = ['sum', 'mean', 'min', 'max', 'var', 'std']
 scalers = [
     'identity', 'amplification', 'attenuation', 'linear', 'inverse_linear'
@@ -15,7 +31,7 @@ scalers = [
 
 
 @pytest.mark.parametrize('divide_input', [True, False])
-def test_pna_conv(divide_input):
+def test_pna_conv(divide_input, device):
     x = torch.randn(4, 16)
     edge_index = torch.tensor([[0, 0, 0, 1, 2, 3], [1, 2, 3, 0, 0, 0]])
     deg = torch.tensor([0, 3, 0, 1])
@@ -30,18 +46,18 @@ def test_pna_conv(divide_input):
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj = SparseTensor.from_edge_index(edge_index, value, (4, 4))
-        assert torch.allclose(conv(x, adj.t()), out, atol=1e-6)
+        assert torch.allclose(conv(x, adj.t()), out)
 
     if is_full_test():
         jit = torch.jit.script(conv)
-        assert torch.allclose(jit(x, edge_index, value), out, atol=1e-6)
+        assert torch.allclose(jit(x, edge_index, value), out)
 
         if torch_geometric.typing.WITH_TORCH_SPARSE:
-            assert torch.allclose(jit(x, adj.t()), out, atol=1e-6)
+            assert torch.allclose(jit(x, adj.t()), out)
 
 
 @onlyNeighborSampler
-def test_pna_conv_get_degree_histogram_neighbor_loader():
+def test_pna_conv_get_degree_histogram_neighbor_loader(device):
     edge_index = torch.tensor([[0, 0, 0, 1, 1, 2, 3], [1, 2, 3, 2, 0, 0, 0]])
     data = Data(num_nodes=5, edge_index=edge_index)
     loader = NeighborLoader(
@@ -55,7 +71,7 @@ def test_pna_conv_get_degree_histogram_neighbor_loader():
     assert torch.equal(deg_hist, torch.tensor([1, 2, 1, 1]))
 
 
-def test_pna_conv_get_degree_histogram_dataloader():
+def test_pna_conv_get_degree_histogram_dataloader(device):
     edge_index_1 = torch.tensor([[0, 0, 0, 1, 1, 2, 3], [1, 2, 3, 2, 0, 0, 0]])
     edge_index_2 = torch.tensor([[1, 1, 2, 2, 0, 3, 3], [2, 3, 3, 1, 1, 0, 2]])
     edge_index_3 = torch.tensor([[1, 3, 2, 0, 0, 4, 2], [2, 0, 4, 1, 1, 0, 3]])

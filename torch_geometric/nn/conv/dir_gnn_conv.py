@@ -6,6 +6,7 @@ from torch import Tensor
 from torch_geometric.nn.conv import MessagePassing
 
 
+@torch.compile
 class DirGNNConv(torch.nn.Module):
     r"""A generic wrapper for computing graph convolution on directed
     graphs as described in the `"Edge Directionality Improves Learning on

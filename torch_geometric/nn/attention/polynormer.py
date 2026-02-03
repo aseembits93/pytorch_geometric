@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from torch import Tensor
 
-
+@torch.compile
 class PolynormerAttention(torch.nn.Module):
     r"""The polynomial-expressive attention mechanism from the
     `"Polynormer: Polynomial-Expressive Graph Transformer in Linear Time"

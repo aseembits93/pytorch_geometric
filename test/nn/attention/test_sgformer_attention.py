@@ -1,35 +1,35 @@
 import pytest
 import torch
 
-from torch_geometric.nn.attention import PolynormerAttention
+from torch_geometric.nn.attention import SGFormerAttention
 
 
-def test_polynormer_attention_basic():
+def test_sgformer_attention_basic():
     x = torch.randn(1, 4, 16)
     mask = torch.ones([1, 4], dtype=torch.bool)
-    attn = PolynormerAttention(channels=16, heads=4)
+    attn = SGFormerAttention(channels=16, heads=4)
     out = attn.forward(x, mask)
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_output_shape(batch_size, seq_len,
-                                                   channels, heads):
+def test_sgformer_attention_forward_output_shape(batch_size, seq_len, channels,
+                                                  heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
 
     x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda')
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out = attn.forward(x)
 
-    assert out.shape == (batch_size, seq_len, heads * attn.head_channels)
+    assert out.shape == (batch_size, seq_len, channels)
     assert out.dtype == torch.float32
     assert out.device.type == 'cuda'
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_with_mask_output_shape(
+def test_sgformer_attention_forward_with_mask_output_shape(
         batch_size, seq_len, channels, heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
@@ -37,24 +37,24 @@ def test_polynormer_attention_forward_with_mask_output_shape(
     x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda')
     mask = torch.ones(batch_size, seq_len, dtype=torch.bool, device='cuda')
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out = attn.forward(x, mask)
 
-    assert out.shape == (batch_size, seq_len, heads * attn.head_channels)
+    assert out.shape == (batch_size, seq_len, channels)
     assert out.dtype == torch.float32
     assert out.device.type == 'cuda'
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_numerical_stability(batch_size, seq_len,
-                                                          channels, heads):
+def test_sgformer_attention_forward_numerical_stability(batch_size, seq_len,
+                                                        channels, heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
 
     x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda')
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out = attn.forward(x)
 
@@ -64,7 +64,7 @@ def test_polynormer_attention_forward_numerical_stability(batch_size, seq_len,
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_with_mask_numerical_stability(
+def test_sgformer_attention_forward_with_mask_numerical_stability(
         batch_size, seq_len, channels, heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
@@ -72,7 +72,7 @@ def test_polynormer_attention_forward_with_mask_numerical_stability(
     x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda')
     mask = torch.ones(batch_size, seq_len, dtype=torch.bool, device='cuda')
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out = attn.forward(x, mask)
 
@@ -82,14 +82,14 @@ def test_polynormer_attention_forward_with_mask_numerical_stability(
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_gradient_flow(batch_size, seq_len,
-                                                    channels, heads):
+def test_sgformer_attention_forward_gradient_flow(batch_size, seq_len,
+                                                  channels, heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
 
     x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda', requires_grad=True)
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out = attn.forward(x)
     loss = out.sum()
@@ -101,7 +101,7 @@ def test_polynormer_attention_forward_gradient_flow(batch_size, seq_len,
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_with_mask_gradient_flow(
+def test_sgformer_attention_forward_with_mask_gradient_flow(
         batch_size, seq_len, channels, heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
@@ -109,7 +109,7 @@ def test_polynormer_attention_forward_with_mask_gradient_flow(
     x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda', requires_grad=True)
     mask = torch.ones(batch_size, seq_len, dtype=torch.bool, device='cuda')
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out = attn.forward(x, mask)
     loss = out.sum()
@@ -121,7 +121,7 @@ def test_polynormer_attention_forward_with_mask_gradient_flow(
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_deterministic_with_seed(
+def test_sgformer_attention_forward_deterministic_with_seed(
         batch_size, seq_len, channels, heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
@@ -130,40 +130,40 @@ def test_polynormer_attention_forward_deterministic_with_seed(
     torch.cuda.manual_seed(42)
     x1 = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                      device='cuda')
-    attn1 = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn1 = SGFormerAttention(channels=channels, heads=heads).cuda()
     out1 = attn1.forward(x1)
 
     torch.manual_seed(42)
     torch.cuda.manual_seed(42)
     x2 = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                      device='cuda')
-    attn2 = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn2 = SGFormerAttention(channels=channels, heads=heads).cuda()
     out2 = attn2.forward(x2)
 
     assert torch.allclose(out1, out2)
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_mask_zeros_output(batch_size, seq_len,
-                                                        channels, heads):
+def test_sgformer_attention_forward_mask_zeros_output(batch_size, seq_len,
+                                                      channels, heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
 
     x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda')
     mask = torch.zeros(batch_size, seq_len, dtype=torch.bool, device='cuda')
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out = attn.forward(x, mask)
 
-    assert out.shape == (batch_size, seq_len, heads * attn.head_channels)
+    assert out.shape == (batch_size, seq_len, channels)
     assert not torch.isnan(out).any()
     assert not torch.isinf(out).any()
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_partial_mask(batch_size, seq_len,
-                                                   channels, heads):
+def test_sgformer_attention_forward_partial_mask(batch_size, seq_len, channels,
+                                                 heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
 
@@ -171,17 +171,17 @@ def test_polynormer_attention_forward_partial_mask(batch_size, seq_len,
                     device='cuda')
     mask = torch.ones(batch_size, seq_len, dtype=torch.bool, device='cuda')
     mask[:, seq_len // 2:] = False
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out = attn.forward(x, mask)
 
-    assert out.shape == (batch_size, seq_len, heads * attn.head_channels)
+    assert out.shape == (batch_size, seq_len, channels)
     assert not torch.isnan(out).any()
     assert not torch.isinf(out).any()
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_consistency_no_mask_vs_full_mask(
+def test_sgformer_attention_forward_consistency_no_mask_vs_full_mask(
         batch_size, seq_len, channels, heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
@@ -190,7 +190,7 @@ def test_polynormer_attention_forward_consistency_no_mask_vs_full_mask(
     torch.cuda.manual_seed(42)
     x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda')
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out_no_mask = attn.forward(x)
 
@@ -199,7 +199,7 @@ def test_polynormer_attention_forward_consistency_no_mask_vs_full_mask(
     x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda')
     mask = torch.ones(batch_size, seq_len, dtype=torch.bool, device='cuda')
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out_with_mask = attn.forward(x, mask)
 
@@ -207,47 +207,24 @@ def test_polynormer_attention_forward_consistency_no_mask_vs_full_mask(
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_zero_input(batch_size, seq_len, channels,
-                                                 heads):
+def test_sgformer_attention_forward_zero_input(batch_size, seq_len, channels,
+                                               heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
 
     x = torch.zeros(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda')
-    attn = PolynormerAttention(channels=channels, heads=heads).cuda()
+    attn = SGFormerAttention(channels=channels, heads=heads).cuda()
 
     out = attn.forward(x)
 
-    assert out.shape == (batch_size, seq_len, heads * attn.head_channels)
+    assert out.shape == (batch_size, seq_len, channels)
     assert not torch.isnan(out).any()
     assert not torch.isinf(out).any()
 
 
 @pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_with_dropout(batch_size, seq_len,
-                                                   channels, heads):
-    if not torch.cuda.is_available():
-        pytest.skip('CUDA not available')
-
-    x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
-                    device='cuda')
-    attn = PolynormerAttention(channels=channels, heads=heads,
-                               dropout=0.5).cuda()
-
-    attn.train()
-    out_train = attn.forward(x)
-
-    attn.eval()
-    out_eval = attn.forward(x)
-
-    assert out_train.shape == (batch_size, seq_len, heads * attn.head_channels)
-    assert out_eval.shape == (batch_size, seq_len, heads * attn.head_channels)
-    assert not torch.isnan(out_train).any()
-    assert not torch.isnan(out_eval).any()
-
-
-@pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_with_bias_configurations(
+def test_sgformer_attention_forward_with_bias_configurations(
         batch_size, seq_len, channels, heads):
     if not torch.cuda.is_available():
         pytest.skip('CUDA not available')
@@ -255,62 +232,15 @@ def test_polynormer_attention_forward_with_bias_configurations(
     x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
                     device='cuda')
 
-    attn_no_bias = PolynormerAttention(channels=channels, heads=heads,
-                                       qkv_bias=False).cuda()
+    attn_no_bias = SGFormerAttention(channels=channels, heads=heads,
+                                     qkv_bias=False).cuda()
     out_no_bias = attn_no_bias.forward(x)
 
-    attn_with_bias = PolynormerAttention(channels=channels, heads=heads,
-                                         qkv_bias=True).cuda()
+    attn_with_bias = SGFormerAttention(channels=channels, heads=heads,
+                                       qkv_bias=True).cuda()
     out_with_bias = attn_with_bias.forward(x)
 
-    assert out_no_bias.shape == (batch_size, seq_len,
-                                 heads * attn_no_bias.head_channels)
-    assert out_with_bias.shape == (batch_size, seq_len,
-                                   heads * attn_with_bias.head_channels)
+    assert out_no_bias.shape == (batch_size, seq_len, channels)
+    assert out_with_bias.shape == (batch_size, seq_len, channels)
     assert not torch.isnan(out_no_bias).any()
     assert not torch.isnan(out_with_bias).any()
-
-
-@pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_qk_shared_configurations(
-        batch_size, seq_len, channels, heads):
-    if not torch.cuda.is_available():
-        pytest.skip('CUDA not available')
-
-    x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
-                    device='cuda')
-
-    attn_shared = PolynormerAttention(channels=channels, heads=heads,
-                                      qk_shared=True).cuda()
-    out_shared = attn_shared.forward(x)
-
-    attn_not_shared = PolynormerAttention(channels=channels, heads=heads,
-                                          qk_shared=False).cuda()
-    out_not_shared = attn_not_shared.forward(x)
-
-    assert out_shared.shape == (batch_size, seq_len,
-                                heads * attn_shared.head_channels)
-    assert out_not_shared.shape == (batch_size, seq_len,
-                                    heads * attn_not_shared.head_channels)
-    assert not torch.isnan(out_shared).any()
-    assert not torch.isnan(out_not_shared).any()
-
-
-@pytest.mark.parametrize('batch_size,seq_len,channels,heads', [(2, 8, 64, 4)])
-def test_polynormer_attention_forward_various_beta_values(
-        batch_size, seq_len, channels, heads):
-    if not torch.cuda.is_available():
-        pytest.skip('CUDA not available')
-
-    x = torch.randn(batch_size, seq_len, channels, dtype=torch.float32,
-                    device='cuda')
-
-    for beta in [0.5, 0.9, 1.0]:
-        attn = PolynormerAttention(channels=channels, heads=heads,
-                                   beta=beta).cuda()
-        out = attn.forward(x)
-
-        assert out.shape == (batch_size, seq_len,
-                            heads * attn.head_channels)
-        assert not torch.isnan(out).any()
-        assert not torch.isinf(out).any()

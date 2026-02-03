@@ -10,6 +10,7 @@ from torch_geometric.typing import Adj, OptPairTensor, OptTensor, Size
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class GraphConv(MessagePassing):
     r"""The graph neural network operator from the `"Weisfeiler and Leman Go
     Neural: Higher-order Graph Neural Networks"

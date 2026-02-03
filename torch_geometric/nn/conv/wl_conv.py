@@ -13,6 +13,7 @@ from torch_geometric.utils import (
 )
 
 
+@torch.compile
 class WLConv(torch.nn.Module):
     r"""The Weisfeiler Lehman (WL) operator from the `"A Reduction of a Graph
     to a Canonical Form and an Algebra Arising During this Reduction"

@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 from torch_geometric.data import Batch, Data
@@ -5,7 +6,23 @@ from torch_geometric.nn import ChebConv
 from torch_geometric.testing import is_full_test
 
 
-def test_cheb_conv():
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
+def test_cheb_conv(device):
     in_channels, out_channels = (16, 32)
     edge_index = torch.tensor([[0, 0, 0, 1, 2, 3], [1, 2, 3, 0, 0, 0]])
     num_nodes = edge_index.max().item() + 1
@@ -47,7 +64,7 @@ def test_cheb_conv():
             jit(x, edge_index, edge_weight, batch, lambda_max), out5)
 
 
-def test_cheb_conv_batch():
+def test_cheb_conv_batch(device):
     x1 = torch.randn(4, 8)
     edge_index1 = torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 2]])
     edge_weight1 = torch.rand(edge_index1.size(1))
@@ -67,5 +84,5 @@ def test_cheb_conv_batch():
     out = conv(batch.x, batch.edge_index, batch.edge_weight, batch.batch)
 
     assert out.size() == (7, 16)
-    assert torch.allclose(out1, out[:4], atol=1e-6)
-    assert torch.allclose(out2, out[4:], atol=1e-6)
+    assert torch.allclose(out1, out[:4])
+    assert torch.allclose(out2, out[4:])

@@ -9,6 +9,7 @@ from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.typing import Adj, OptTensor, PairTensor
 
 
+@torch.compile
 class CGConv(MessagePassing):
     r"""The crystal graph convolutional operator from the
     `"Crystal Graph Convolutional Neural Networks for an

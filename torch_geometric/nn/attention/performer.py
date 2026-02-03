@@ -4,7 +4,7 @@ from typing import Callable, Optional
 import torch
 from torch import Tensor
 
-
+@torch.compile
 def _orthogonal_matrix(dim: int) -> Tensor:
     r"""Get an orthogonal matrix by applying QR decomposition."""
     # Random matrix from normal distribution
@@ -13,7 +13,7 @@ def _orthogonal_matrix(dim: int) -> Tensor:
     q, _ = torch.linalg.qr(mat.cpu(), mode='reduced')
     return q.t()
 
-
+@torch.compile
 def orthogonal_matrix(num_rows: int, num_cols: int) -> Tensor:
     r"""Generate an orthogonal matrix with `num_rows` rows
     and `num_cols` columns.
@@ -33,7 +33,7 @@ def orthogonal_matrix(num_rows: int, num_cols: int) -> Tensor:
     # mat = scaler @ mat
     return mat
 
-
+@torch.compile
 def linear_attention(q: Tensor, k: Tensor, v: Tensor) -> Tensor:
     r"""Efficient attention mechanism from the
     `"Rethinking Attention with Performers"
@@ -49,7 +49,7 @@ def linear_attention(q: Tensor, k: Tensor, v: Tensor) -> Tensor:
     out = torch.einsum('...L,...Ld->...Ld', D_inv.squeeze(-1), qkv)
     return out
 
-
+@torch.compile
 def generalized_kernel(
         x: Tensor,
         mat: Tensor,
@@ -62,7 +62,7 @@ def generalized_kernel(
     out = kernel(x) + epsilon
     return out
 
-
+@torch.compile
 class PerformerProjection(torch.nn.Module):
     r"""The fast attention that uses a projection matrix
     from the `"Rethinking Attention with Performers"
@@ -94,7 +94,7 @@ class PerformerProjection(torch.nn.Module):
         out = linear_attention(q, k, v)
         return out
 
-
+@torch.compile
 class PerformerAttention(torch.nn.Module):
     r"""The linear scaled attention mechanism from the
     `"Rethinking Attention with Performers"

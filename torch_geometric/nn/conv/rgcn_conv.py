@@ -20,12 +20,14 @@ from torch_geometric.typing import (
 from torch_geometric.utils import index_sort, one_hot, scatter, spmm
 
 
+@torch.compile
 def masked_edge_index(edge_index: Adj, edge_mask: Tensor) -> Adj:
     if isinstance(edge_index, Tensor):
         return edge_index[:, edge_mask]
     return torch_sparse.masked_select_nnz(edge_index, edge_mask, layout='coo')
 
 
+@torch.compile
 class RGCNConv(MessagePassing):
     r"""The relational graph convolutional operator from the `"Modeling
     Relational Data with Graph Convolutional Networks"
@@ -299,6 +301,7 @@ class RGCNConv(MessagePassing):
                 f'{self.out_channels}, num_relations={self.num_relations})')
 
 
+@torch.compile
 class FastRGCNConv(RGCNConv):
     r"""See :class:`RGCNConv`."""
     def forward(self, x: Union[OptTensor, Tuple[OptTensor, Tensor]],

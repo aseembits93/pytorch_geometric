@@ -31,6 +31,7 @@ else:
     from torch.jit import _overload_method as overload
 
 
+@torch.compile
 class GATv2Conv(MessagePassing):
     r"""The GATv2 operator from the `"How Attentive are Graph Attention
     Networks?" <https://arxiv.org/abs/2105.14491>`_ paper, which fixes the

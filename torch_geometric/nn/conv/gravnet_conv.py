@@ -16,6 +16,7 @@ else:
     knn = None
 
 
+@torch.compile
 class GravNetConv(MessagePassing):
     r"""The GravNet operator from the `"Learning Representations of Irregular
     Particle-detector Geometry with Distance-weighted Graph

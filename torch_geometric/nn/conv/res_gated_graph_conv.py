@@ -10,6 +10,7 @@ from torch_geometric.nn.inits import zeros
 from torch_geometric.typing import Adj, OptTensor, PairTensor
 
 
+@torch.compile
 class ResGatedGraphConv(MessagePassing):
     r"""The residual gated graph convolutional operator from the
     `"Residual Gated Graph ConvNets" <https://arxiv.org/abs/1711.07553>`_
