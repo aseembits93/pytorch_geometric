@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Optional, Callable
 
 import torch
 
@@ -29,12 +29,16 @@ class QFormer(torch.nn.Module):
             num_heads: int,
             num_layers: int,
             dropout: float = 0.0,
-            activation: Callable = torch.nn.ReLU(),
+            activation: Optional[Callable] = None,
     ) -> None:
 
         super().__init__()
         self.num_layers = num_layers
         self.num_heads = num_heads
+
+
+        if activation is None:
+            activation = torch.nn.ReLU()
 
         self.layer_norm = torch.nn.LayerNorm(input_dim)
         self.encoder_layer = torch.nn.TransformerEncoderLayer(
@@ -52,7 +56,8 @@ class QFormer(torch.nn.Module):
         self.project = torch.nn.Linear(input_dim, output_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        r"""Forward pass.
+        """Forward pass.
+
 
         Args:
             x (torch.Tensor): Input sequence to the encoder layer.
