@@ -8,6 +8,7 @@ from torch_geometric.nn.conv import GATConv
 from torch_geometric.utils import sort_edge_index
 
 
+@torch.compile
 class FusedGATConv(GATConv):  # pragma: no cover
     r"""The fused graph attention operator from the
     `"Understanding GNN Computational Graph: A Coordinated Computation, IO, and

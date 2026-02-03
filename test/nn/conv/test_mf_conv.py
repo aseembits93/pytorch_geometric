@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 import torch_geometric.typing
@@ -6,7 +7,23 @@ from torch_geometric.testing import is_full_test
 from torch_geometric.typing import SparseTensor
 
 
-def test_mf_conv():
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
+def test_mf_conv(device):
     x1 = torch.randn(4, 8)
     x2 = torch.randn(2, 16)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])

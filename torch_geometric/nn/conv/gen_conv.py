@@ -1,5 +1,6 @@
 from typing import List, Optional, Tuple, Union
 
+import torch
 from torch import Tensor
 from torch.nn import (
     BatchNorm1d,
@@ -18,6 +19,7 @@ from torch_geometric.nn.norm import MessageNorm
 from torch_geometric.typing import Adj, OptPairTensor, OptTensor, Size
 
 
+@torch.compile
 class MLP(Sequential):
     def __init__(self, channels: List[int], norm: Optional[str] = None,
                  bias: bool = True, dropout: float = 0.):
@@ -41,6 +43,7 @@ class MLP(Sequential):
         super().__init__(*m)
 
 
+@torch.compile
 class GENConv(MessagePassing):
     r"""The GENeralized Graph Convolution (GENConv) from the `"DeeperGCN: All
     You Need to Train Deeper GCNs" <https://arxiv.org/abs/2006.07739>`_ paper.

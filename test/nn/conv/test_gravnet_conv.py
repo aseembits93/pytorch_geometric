@@ -1,11 +1,28 @@
+import pytest
 import torch
 
 from torch_geometric.nn import GravNetConv
 from torch_geometric.testing import is_full_test, withPackage
 
 
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 @withPackage('torch_cluster')
-def test_gravnet_conv():
+def test_gravnet_conv(device):
     x1 = torch.randn(8, 16)
     x2 = torch.randn(4, 16)
     batch1 = torch.tensor([0, 0, 0, 0, 1, 1, 1, 1])

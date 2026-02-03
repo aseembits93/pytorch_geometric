@@ -16,6 +16,7 @@ from torch_geometric.typing import (
 from torch_geometric.utils import add_self_loops, remove_self_loops
 
 
+@torch.compile
 class PointNetConv(MessagePassing):
     r"""The PointNet set layer from the `"PointNet: Deep Learning on Point Sets
     for 3D Classification and Segmentation"

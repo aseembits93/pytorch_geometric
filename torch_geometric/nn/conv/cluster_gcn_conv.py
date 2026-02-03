@@ -15,6 +15,7 @@ from torch_geometric.utils import (
 from torch_geometric.utils.sparse import set_sparse_value
 
 
+@torch.compile
 class ClusterGCNConv(MessagePassing):
     r"""The ClusterGCN graph convolutional operator from the
     `"Cluster-GCN: An Efficient Algorithm for Training Deep and Large Graph

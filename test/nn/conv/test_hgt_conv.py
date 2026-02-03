@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 import torch_geometric.typing
@@ -9,7 +10,23 @@ from torch_geometric.typing import SparseTensor
 from torch_geometric.utils import coalesce, to_torch_csc_tensor
 
 
-def test_hgt_conv_same_dimensions():
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
+def test_hgt_conv_same_dimensions(device):
     x_dict = {
         'author': torch.randn(4, 16),
         'paper': torch.randn(6, 16),
@@ -41,7 +58,7 @@ def test_hgt_conv_same_dimensions():
     out_dict2 = conv(x_dict, adj_t_dict1)
     assert len(out_dict1) == len(out_dict2)
     for key in out_dict1.keys():
-        assert torch.allclose(out_dict1[key], out_dict2[key], atol=1e-6)
+        assert torch.allclose(out_dict1[key], out_dict2[key])
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj_t_dict2 = {}
@@ -53,13 +70,13 @@ def test_hgt_conv_same_dimensions():
         out_dict3 = conv(x_dict, adj_t_dict2)
         assert len(out_dict1) == len(out_dict3)
         for key in out_dict1.keys():
-            assert torch.allclose(out_dict1[key], out_dict3[key], atol=1e-6)
+            assert torch.allclose(out_dict1[key], out_dict3[key])
 
     # TODO: Test JIT functionality. We need to wait on this one until PyTorch
     # allows indexing `ParameterDict` mappings :(
 
 
-def test_hgt_conv_different_dimensions():
+def test_hgt_conv_different_dimensions(device):
     x_dict = {
         'author': torch.randn(4, 16),
         'paper': torch.randn(6, 32),
@@ -94,7 +111,7 @@ def test_hgt_conv_different_dimensions():
     out_dict2 = conv(x_dict, adj_t_dict1)
     assert len(out_dict1) == len(out_dict2)
     for key in out_dict1.keys():
-        assert torch.allclose(out_dict1[key], out_dict2[key], atol=1e-6)
+        assert torch.allclose(out_dict1[key], out_dict2[key])
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj_t_dict2 = {}
@@ -106,10 +123,10 @@ def test_hgt_conv_different_dimensions():
         out_dict3 = conv(x_dict, adj_t_dict2)
         assert len(out_dict1) == len(out_dict3)
         for key in out_dict1.keys():
-            assert torch.allclose(out_dict1[key], out_dict3[key], atol=1e-6)
+            assert torch.allclose(out_dict1[key], out_dict3[key])
 
 
-def test_hgt_conv_lazy():
+def test_hgt_conv_lazy(device):
     x_dict = {
         'author': torch.randn(4, 16),
         'paper': torch.randn(6, 32),
@@ -141,7 +158,7 @@ def test_hgt_conv_lazy():
     out_dict2 = conv(x_dict, adj_t_dict1)
     assert len(out_dict1) == len(out_dict2)
     for key in out_dict1.keys():
-        assert torch.allclose(out_dict1[key], out_dict2[key], atol=1e-6)
+        assert torch.allclose(out_dict1[key], out_dict2[key])
 
     if False and torch_geometric.typing.WITH_TORCH_SPARSE:
         adj_t_dict2 = {}
@@ -153,10 +170,10 @@ def test_hgt_conv_lazy():
         out_dict3 = conv(x_dict, adj_t_dict2)
         assert len(out_dict1) == len(out_dict3)
         for key in out_dict1.keys():
-            assert torch.allclose(out_dict1[key], out_dict3[key], atol=1e-6)
+            assert torch.allclose(out_dict1[key], out_dict3[key])
 
 
-def test_hgt_conv_out_of_place():
+def test_hgt_conv_out_of_place(device):
     data = HeteroData()
     data['author'].x = torch.randn(4, 16)
     data['paper'].x = torch.randn(6, 32)
@@ -178,7 +195,7 @@ def test_hgt_conv_out_of_place():
     assert x_dict['paper'].size() == (6, 32)
 
 
-def test_hgt_conv_missing_dst_node_type():
+def test_hgt_conv_missing_dst_node_type(device):
     data = HeteroData()
     data['author'].x = torch.randn(4, 16)
     data['paper'].x = torch.randn(6, 32)
@@ -196,7 +213,7 @@ def test_hgt_conv_missing_dst_node_type():
     assert 'university' not in out_dict
 
 
-def test_hgt_conv_missing_input_node_type():
+def test_hgt_conv_missing_input_node_type(device):
     data = HeteroData()
     data['author'].x = torch.randn(4, 16)
     data['paper'].x = torch.randn(6, 32)
@@ -214,7 +231,7 @@ def test_hgt_conv_missing_input_node_type():
     assert 'university' not in out_dict
 
 
-def test_hgt_conv_missing_edge_type():
+def test_hgt_conv_missing_edge_type(device):
     data = HeteroData()
     data['author'].x = torch.randn(4, 16)
     data['paper'].x = torch.randn(6, 32)

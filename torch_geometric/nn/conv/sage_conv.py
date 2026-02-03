@@ -1,5 +1,6 @@
 from typing import List, Optional, Tuple, Union
 
+import torch
 import torch.nn.functional as F
 from torch import Tensor
 
@@ -10,6 +11,7 @@ from torch_geometric.typing import Adj, OptPairTensor, Size, SparseTensor
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class SAGEConv(MessagePassing):
     r"""The GraphSAGE operator from the `"Inductive Representation Learning on
     Large Graphs" <https://arxiv.org/abs/1706.02216>`_ paper.

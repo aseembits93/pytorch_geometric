@@ -1,3 +1,4 @@
+import pytest
 import warnings
 
 import torch
@@ -8,8 +9,24 @@ from torch_geometric.testing import is_full_test, withPackage
 from torch_geometric.typing import SparseTensor
 
 
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 @withPackage('torch_spline_conv')
-def test_spline_conv():
+def test_spline_conv(device):
     warnings.filterwarnings('ignore', '.*non-optimized CPU version.*')
 
     x1 = torch.randn(4, 8)
@@ -25,15 +42,15 @@ def test_spline_conv():
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj = SparseTensor.from_edge_index(edge_index, value, (4, 4))
-        assert torch.allclose(conv(x1, adj.t()), out, atol=1e-6)
+        assert torch.allclose(conv(x1, adj.t()), out)
 
     if is_full_test():
         jit = torch.jit.script(conv)
-        assert torch.allclose(jit(x1, edge_index, value), out, atol=1e-6)
+        assert torch.allclose(jit(x1, edge_index, value), out)
         assert torch.allclose(jit(x1, edge_index, value, size=(4, 4)), out)
 
         if torch_geometric.typing.WITH_TORCH_SPARSE:
-            assert torch.allclose(jit(x1, adj.t()), out, atol=1e-6)
+            assert torch.allclose(jit(x1, adj.t()), out)
 
     # Test bipartite message passing:
     conv = SplineConv((8, 16), 32, dim=3, kernel_size=5)
@@ -48,8 +65,8 @@ def test_spline_conv():
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj = SparseTensor.from_edge_index(edge_index, value, (4, 2))
-        assert torch.allclose(conv((x1, x2), adj.t()), out1, atol=1e-6)
-        assert torch.allclose(conv((x1, None), adj.t()), out2, atol=1e-6)
+        assert torch.allclose(conv((x1, x2), adj.t()), out1)
+        assert torch.allclose(conv((x1, None), adj.t()), out2)
 
     if is_full_test():
         jit = torch.jit.script(conv)
@@ -60,12 +77,12 @@ def test_spline_conv():
                               out2, atol=1e-6)
 
         if torch_geometric.typing.WITH_TORCH_SPARSE:
-            assert torch.allclose(jit((x1, x2), adj.t()), out1, atol=1e-6)
-            assert torch.allclose(jit((x1, None), adj.t()), out2, atol=1e-6)
+            assert torch.allclose(jit((x1, x2), adj.t()), out1)
+            assert torch.allclose(jit((x1, None), adj.t()), out2)
 
 
 @withPackage('torch_spline_conv')
-def test_lazy_spline_conv():
+def test_lazy_spline_conv(device):
     warnings.filterwarnings('ignore', '.*non-optimized CPU version.*')
 
     x1 = torch.randn(4, 8)

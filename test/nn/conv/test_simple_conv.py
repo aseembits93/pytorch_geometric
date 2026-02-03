@@ -8,13 +8,29 @@ from torch_geometric.typing import SparseTensor
 from torch_geometric.utils import to_torch_csc_tensor
 
 
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 @pytest.mark.parametrize('aggr, combine_root', [
     ('mean', None),
     ('sum', 'sum'),
     (['mean', 'max'], 'cat'),
     ('mean', 'self_loop'),
 ])
-def test_simple_conv(aggr, combine_root):
+def test_simple_conv(aggr, combine_root, device):
     x1 = torch.randn(4, 8)
     x2 = torch.randn(2, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [1, 0, 1, 1]])

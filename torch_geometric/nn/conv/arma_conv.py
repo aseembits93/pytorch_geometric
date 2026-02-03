@@ -12,6 +12,7 @@ from torch_geometric.typing import Adj, OptTensor, SparseTensor
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class ARMAConv(MessagePassing):
     r"""The ARMA graph convolutional operator from the `"Graph Neural Networks
     with Convolutional ARMA Filters" <https://arxiv.org/abs/1901.01343>`_

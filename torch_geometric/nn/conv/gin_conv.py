@@ -16,6 +16,7 @@ from torch_geometric.typing import (
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class GINConv(MessagePassing):
     r"""The graph isomorphism operator from the `"How Powerful are
     Graph Neural Networks?" <https://arxiv.org/abs/1810.00826>`_ paper.
@@ -101,6 +102,7 @@ class GINConv(MessagePassing):
         return f'{self.__class__.__name__}(nn={self.nn})'
 
 
+@torch.compile
 class GINEConv(MessagePassing):
     r"""The modified :class:`GINConv` operator from the `"Strategies for
     Pre-training Graph Neural Networks" <https://arxiv.org/abs/1905.12265>`_

@@ -1,3 +1,4 @@
+import pytest
 import torch
 from torch.nn import Linear as Lin
 from torch.nn import ReLU
@@ -9,6 +10,22 @@ from torch_geometric.testing import is_full_test, withCUDA
 from torch_geometric.typing import SparseTensor
 from torch_geometric.utils import to_torch_coo_tensor
 
+
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
 
 @withCUDA
 def test_nn_conv(device):

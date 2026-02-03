@@ -1,15 +1,32 @@
+import pytest
 import torch
 
 from torch_geometric.data import Batch, Data
 from torch_geometric.nn import ChebConv, GCNConv, MessagePassing
 
 
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 class MyConv(MessagePassing):
     def forward(self, x, edge_index):
         return self.propagate(edge_index, x=x)
 
 
-def test_static_graph():
+def test_static_graph(device):
     edge_index = torch.tensor([[0, 1, 1, 2], [1, 0, 2, 1]])
     x1, x2 = torch.randn(3, 8), torch.randn(3, 8)
 

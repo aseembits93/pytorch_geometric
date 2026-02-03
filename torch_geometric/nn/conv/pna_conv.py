@@ -14,6 +14,7 @@ from torch_geometric.typing import Adj, OptTensor
 from torch_geometric.utils import degree
 
 
+@torch.compile
 class PNAConv(MessagePassing):
     r"""The Principal Neighbourhood Aggregation graph convolution operator
     from the `"Principal Neighbourhood Aggregation for Graph Nets"

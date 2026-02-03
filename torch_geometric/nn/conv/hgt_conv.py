@@ -14,6 +14,7 @@ from torch_geometric.utils import softmax
 from torch_geometric.utils.hetero import construct_bipartite_edge_index
 
 
+@torch.compile
 class HGTConv(MessagePassing):
     r"""The Heterogeneous Graph Transformer (HGT) operator from the
     `"Heterogeneous Graph Transformer" <https://arxiv.org/abs/2003.01332>`_

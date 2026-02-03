@@ -16,11 +16,13 @@ from torch_geometric.typing import (
 from torch_geometric.utils import add_self_loops, remove_self_loops
 
 
+@torch.compile
 def get_angle(v1: Tensor, v2: Tensor) -> Tensor:
     return torch.atan2(
         torch.cross(v1, v2, dim=1).norm(p=2, dim=1), (v1 * v2).sum(dim=1))
 
 
+@torch.compile
 def point_pair_features(pos_i: Tensor, pos_j: Tensor, normal_i: Tensor,
                         normal_j: Tensor) -> Tensor:
     pseudo = pos_j - pos_i
@@ -32,6 +34,7 @@ def point_pair_features(pos_i: Tensor, pos_j: Tensor, normal_i: Tensor,
     ], dim=1)
 
 
+@torch.compile
 class PPFConv(MessagePassing):
     r"""The PPFNet operator from the `"PPFNet: Global Context Aware Local
     Features for Robust 3D Point Matching" <https://arxiv.org/abs/1802.02669>`_

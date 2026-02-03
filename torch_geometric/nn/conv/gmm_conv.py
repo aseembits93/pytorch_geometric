@@ -10,6 +10,7 @@ from torch_geometric.nn.inits import glorot, zeros
 from torch_geometric.typing import Adj, OptPairTensor, OptTensor, Size
 
 
+@torch.compile
 class GMMConv(MessagePassing):
     r"""The gaussian mixture model convolutional operator from the `"Geometric
     Deep Learning on Graphs and Manifolds using Mixture Model CNNs"

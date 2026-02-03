@@ -10,6 +10,7 @@ from torch_geometric.nn.inits import reset, zeros
 from torch_geometric.typing import Adj, OptPairTensor, OptTensor, Size
 
 
+@torch.compile
 class NNConv(MessagePassing):
     r"""The continuous kernel-based convolutional operator from the
     `"Neural Message Passing for Quantum Chemistry"

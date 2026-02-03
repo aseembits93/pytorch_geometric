@@ -10,6 +10,7 @@ from torch_geometric.typing import Adj, OptPairTensor, Size, SparseTensor
 from torch_geometric.utils import degree, spmm
 
 
+@torch.compile
 class MFConv(MessagePassing):
     r"""The graph neural network operator from the
     `"Convolutional Networks on Graphs for Learning Molecular Fingerprints"

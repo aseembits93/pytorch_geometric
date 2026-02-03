@@ -10,6 +10,7 @@ from torch_geometric.typing import Adj, OptTensor, SparseTensor, torch_sparse
 from torch_geometric.utils import add_self_loops, remove_self_loops, softmax
 
 
+@torch.compile
 class AGNNConv(MessagePassing):
     r"""The graph attentional propagation layer from the
     `"Attention-based Graph Neural Network for Semi-Supervised Learning"

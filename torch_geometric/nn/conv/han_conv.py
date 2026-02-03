@@ -12,6 +12,7 @@ from torch_geometric.typing import Adj, EdgeType, Metadata, NodeType, OptTensor
 from torch_geometric.utils import softmax
 
 
+@torch.compile
 def group(
     xs: List[Tensor],
     q: nn.Parameter,
@@ -31,6 +32,7 @@ def group(
         return out, attn
 
 
+@torch.compile
 class HANConv(MessagePassing):
     r"""The Heterogenous Graph Attention Operator from the
     `"Heterogenous Graph Attention Network"

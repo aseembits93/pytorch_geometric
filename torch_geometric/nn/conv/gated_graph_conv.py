@@ -8,6 +8,7 @@ from torch_geometric.typing import Adj, OptTensor
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class GatedGraphConv(MessagePassing):
     r"""The gated graph convolution operator from the `"Gated Graph Sequence
     Neural Networks" <https://arxiv.org/abs/1511.05493>`_ paper.

@@ -18,6 +18,7 @@ from torch_geometric.typing import (
 from torch_geometric.utils import softmax
 
 
+@torch.compile
 class GeneralConv(MessagePassing):
     r"""A general GNN layer adapted from the `"Design Space for Graph Neural
     Networks" <https://arxiv.org/abs/2011.08843>`_ paper.

@@ -12,6 +12,7 @@ from torch_geometric.typing import Adj, PairTensor, SparseTensor, torch_sparse
 from torch_geometric.utils import add_self_loops, remove_self_loops
 
 
+@torch.compile
 class FeaStConv(MessagePassing):
     r"""The (translation-invariant) feature-steered convolutional operator from
     the `"FeaStNet: Feature-Steered Graph Convolutions for 3D Shape Analysis"

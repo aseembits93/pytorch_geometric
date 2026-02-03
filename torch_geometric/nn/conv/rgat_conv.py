@@ -13,6 +13,7 @@ from torch_geometric.utils import is_torch_sparse_tensor, scatter, softmax
 from torch_geometric.utils.sparse import set_sparse_value
 
 
+@torch.compile
 class RGATConv(MessagePassing):
     r"""The relational graph attentional operator from the `"Relational Graph
     Attention Networks" <https://arxiv.org/abs/1904.05811>`_ paper.

@@ -12,6 +12,7 @@ from torch_geometric.nn.inits import glorot, zeros
 from torch_geometric.utils import scatter, softmax
 
 
+@torch.compile
 class HypergraphConv(MessagePassing):
     r"""The hypergraph convolutional operator from the `"Hypergraph Convolution
     and Hypergraph Attention" <https://arxiv.org/abs/1901.08150>`_ paper.

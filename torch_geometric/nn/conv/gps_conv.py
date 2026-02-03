@@ -17,6 +17,7 @@ from torch_geometric.typing import Adj
 from torch_geometric.utils import to_dense_batch
 
 
+@torch.compile
 class GPSConv(torch.nn.Module):
     r"""The general, powerful, scalable (GPS) graph transformer layer from the
     `"Recipe for a General, Powerful, Scalable Graph Transformer"

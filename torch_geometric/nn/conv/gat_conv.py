@@ -32,6 +32,7 @@ else:
     from torch.jit import _overload_method as overload
 
 
+@torch.compile
 class GATConv(MessagePassing):
     r"""The graph attentional operator from the `"Graph Attention Networks"
     <https://arxiv.org/abs/1710.10903>`_ paper.

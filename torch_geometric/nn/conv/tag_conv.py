@@ -9,6 +9,7 @@ from torch_geometric.typing import Adj, OptTensor, SparseTensor
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class TAGConv(MessagePassing):
     r"""The topology adaptive graph convolutional networks operator from the
     `"Topology Adaptive Graph Convolutional Networks"

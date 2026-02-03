@@ -1,6 +1,7 @@
 import copy
 from typing import Callable, Optional, Tuple, Union
 
+import torch
 from torch import Tensor
 from torch.nn import ModuleList, ReLU
 
@@ -16,6 +17,7 @@ from torch_geometric.typing import (
 )
 
 
+@torch.compile
 class FiLMConv(MessagePassing):
     r"""The FiLM graph convolutional operator from the
     `"GNN-FiLM: Graph Neural Networks with Feature-wise Linear Modulation"

@@ -24,6 +24,21 @@ from torch_geometric.utils import (
     to_torch_csc_tensor,
 )
 
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 
 class MyConv(MessagePassing):
     def __init__(self, in_channels: Union[int, Tuple[int, int]],
@@ -76,7 +91,7 @@ class MyConvWithSelfLoops(MessagePassing):
         return self.propagate(edge_index, x=x)
 
 
-def test_my_conv_basic():
+def test_my_conv_basic(device):
     x1 = torch.randn(4, 8)
     x2 = torch.randn(2, 16)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
@@ -88,14 +103,14 @@ def test_my_conv_basic():
     conv = MyConv(8, 32)
     out = conv(x1, edge_index, value)
     assert out.size() == (4, 32)
-    assert torch.allclose(conv(x1, edge_index, value, (4, 4)), out, atol=1e-6)
-    assert torch.allclose(conv(x1, adj1.t()), out, atol=1e-6)
+    assert torch.allclose(conv(x1, edge_index, value, (4, 4)), out)
+    assert torch.allclose(conv(x1, adj1.t()), out)
     if torch_geometric.typing.WITH_TORCH_SPARSE:
-        assert torch.allclose(conv(x1, adj2.t()), out, atol=1e-6)
+        assert torch.allclose(conv(x1, adj2.t()), out)
     conv.fuse = False
-    assert torch.allclose(conv(x1, adj1.t()), out, atol=1e-6)
+    assert torch.allclose(conv(x1, adj1.t()), out)
     if torch_geometric.typing.WITH_TORCH_SPARSE:
-        assert torch.allclose(conv(x1, adj2.t()), out, atol=1e-6)
+        assert torch.allclose(conv(x1, adj2.t()), out)
     conv.fuse = True
 
     # Bipartite message passing:
@@ -109,17 +124,17 @@ def test_my_conv_basic():
     assert out1.size() == (2, 32)
     assert out2.size() == (2, 32)
     assert torch.allclose(conv((x1, x2), edge_index, value, (4, 2)), out1)
-    assert torch.allclose(conv((x1, x2), adj1.t()), out1, atol=1e-6)
-    assert torch.allclose(conv((x1, None), adj1.t()), out2, atol=1e-6)
+    assert torch.allclose(conv((x1, x2), adj1.t()), out1)
+    assert torch.allclose(conv((x1, None), adj1.t()), out2)
     if torch_geometric.typing.WITH_TORCH_SPARSE:
-        assert torch.allclose(conv((x1, x2), adj2.t()), out1, atol=1e-6)
-        assert torch.allclose(conv((x1, None), adj2.t()), out2, atol=1e-6)
+        assert torch.allclose(conv((x1, x2), adj2.t()), out1)
+        assert torch.allclose(conv((x1, None), adj2.t()), out2)
     conv.fuse = False
-    assert torch.allclose(conv((x1, x2), adj1.t()), out1, atol=1e-6)
-    assert torch.allclose(conv((x1, None), adj1.t()), out2, atol=1e-6)
+    assert torch.allclose(conv((x1, x2), adj1.t()), out1)
+    assert torch.allclose(conv((x1, None), adj1.t()), out2)
     if torch_geometric.typing.WITH_TORCH_SPARSE:
-        assert torch.allclose(conv((x1, x2), adj2.t()), out1, atol=1e-6)
-        assert torch.allclose(conv((x1, None), adj2.t()), out2, atol=1e-6)
+        assert torch.allclose(conv((x1, x2), adj2.t()), out1)
+        assert torch.allclose(conv((x1, None), adj2.t()), out2)
 
     # Test gradient computation for `torch.sparse` tensors:
     conv.fuse = True
@@ -129,7 +144,7 @@ def test_my_conv_basic():
     assert torch_adj_t.grad is not None
 
 
-def test_my_conv_save(tmp_path):
+def test_my_conv_save(tmp_path, device):
     conv = MyConv(8, 32)
     assert conv._jinja_propagate is not None
     assert conv.__class__._jinja_propagate is not None
@@ -145,7 +160,7 @@ def test_my_conv_save(tmp_path):
     assert conv.__class__._orig_propagate is not None
 
 
-def test_my_conv_edge_index():
+def test_my_conv_edge_index(device):
     x = torch.randn(4, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
     edge_index = EdgeIndex(edge_index, sparse_size=(4, 4), sort_order='col')
@@ -166,7 +181,7 @@ class MyCommentedConv(MessagePassing):
         return self.propagate(edge_index, x=x)
 
 
-def test_my_commented_conv():
+def test_my_commented_conv(device):
     # Check that `self.propagate` occurrences in comments are correctly
     # ignored.
     x = torch.randn(4, 8)
@@ -187,7 +202,7 @@ class MyKwargsConv(MessagePassing):
         return self.propagate(x=x, edge_index=edge_index)
 
 
-def test_my_kwargs_conv():
+def test_my_kwargs_conv(device):
     x = torch.randn(4, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
 
@@ -198,7 +213,7 @@ def test_my_kwargs_conv():
     jit(x, edge_index)
 
 
-def test_my_conv_out_of_bounds():
+def test_my_conv_out_of_bounds(device):
     x = torch.randn(3, 8)
     value = torch.randn(4)
 
@@ -213,7 +228,7 @@ def test_my_conv_out_of_bounds():
         conv(x, edge_index, value)
 
 
-def test_my_conv_jit():
+def test_my_conv_jit(device):
     x1 = torch.randn(4, 8)
     x2 = torch.randn(2, 16)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
@@ -223,15 +238,15 @@ def test_my_conv_jit():
     out = conv(x1, edge_index, value)
 
     jit = torch.jit.script(conv)
-    assert torch.allclose(jit(x1, edge_index, value), out, atol=1e-6)
-    assert torch.allclose(jit(x1, edge_index, value, (4, 4)), out, atol=1e-6)
+    assert torch.allclose(jit(x1, edge_index, value), out)
+    assert torch.allclose(jit(x1, edge_index, value, (4, 4)), out)
 
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj = SparseTensor.from_edge_index(edge_index, value, (4, 4))
 
-        assert torch.allclose(jit(x1, adj.t()), out, atol=1e-6)
+        assert torch.allclose(jit(x1, adj.t()), out)
         jit.fuse = False
-        assert torch.allclose(jit(x1, adj.t()), out, atol=1e-6)
+        assert torch.allclose(jit(x1, adj.t()), out)
         jit.fuse = True
 
     conv = MyConv((8, 16), 32)
@@ -246,15 +261,15 @@ def test_my_conv_jit():
     if torch_geometric.typing.WITH_TORCH_SPARSE:
         adj = SparseTensor.from_edge_index(edge_index, value, (4, 2))
 
-        assert torch.allclose(jit((x1, x2), adj.t()), out1, atol=1e-6)
-        assert torch.allclose(jit((x1, None), adj.t()), out2, atol=1e-6)
+        assert torch.allclose(jit((x1, x2), adj.t()), out1)
+        assert torch.allclose(jit((x1, None), adj.t()), out2)
         jit.fuse = False
-        assert torch.allclose(jit((x1, x2), adj.t()), out1, atol=1e-6)
-        assert torch.allclose(jit((x1, None), adj.t()), out2, atol=1e-6)
+        assert torch.allclose(jit((x1, x2), adj.t()), out1)
+        assert torch.allclose(jit((x1, None), adj.t()), out2)
         jit.fuse = True
 
 
-def test_my_conv_jit_save(tmp_path):
+def test_my_conv_jit_save(tmp_path, device):
     path = osp.join(tmp_path, 'model.pt')
 
     conv = MyConv(8, 32)
@@ -264,7 +279,7 @@ def test_my_conv_jit_save(tmp_path):
 
 
 @pytest.mark.parametrize('aggr', ['add', 'sum', 'mean', 'min', 'max', 'mul'])
-def test_my_conv_aggr(aggr):
+def test_my_conv_aggr(aggr, device):
     x = torch.randn(4, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
     edge_weight = torch.randn(edge_index.size(1))
@@ -274,7 +289,7 @@ def test_my_conv_aggr(aggr):
     assert out.size() == (4, 32)
 
 
-def test_my_static_graph_conv():
+def test_my_static_graph_conv(device):
     x1 = torch.randn(3, 4, 8)
     x2 = torch.randn(3, 2, 16)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
@@ -316,7 +331,7 @@ class MyMultipleAggrConv(MessagePassing):
     (dict(mode='cat'), 3),
     (dict(mode='proj', mode_kwargs=dict(in_channels=16, out_channels=16)), 1)
 ])
-def test_my_multiple_aggr_conv(multi_aggr_tuple):
+def test_my_multiple_aggr_conv(multi_aggr_tuple, device):
     # The 'cat' combine mode will expand the output dimensions by
     # the number of aggregators which is 3 here, while the 'proj'
     # mode keeps output dimensions unchanged.
@@ -335,7 +350,7 @@ def test_my_multiple_aggr_conv(multi_aggr_tuple):
         assert torch.allclose(conv(x, adj2.t()), out)
 
 
-def test_my_multiple_aggr_conv_jit():
+def test_my_multiple_aggr_conv_jit(device):
     x = torch.randn(4, 16)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
 
@@ -350,7 +365,7 @@ def test_my_multiple_aggr_conv_jit():
         assert torch.allclose(jit(x, adj.t()), out)
 
 
-def test_copy():
+def test_copy(device):
     conv = MyConv(8, 32)
     conv2 = copy.copy(conv)
 
@@ -387,7 +402,7 @@ class MyEdgeConv(MessagePassing):
         return edge_attr
 
 
-def test_my_edge_conv():
+def test_my_edge_conv(device):
     x = torch.randn(4, 16)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
     adj1 = to_torch_csc_tensor(edge_index, size=(4, 4))
@@ -406,7 +421,7 @@ def test_my_edge_conv():
         assert torch.allclose(conv(x, adj2.t()), out)
 
 
-def test_my_edge_conv_jit():
+def test_my_edge_conv_jit(device):
     x = torch.randn(4, 16)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
 
@@ -425,7 +440,7 @@ num_pre_hook_calls = 0
 num_hook_calls = 0
 
 
-def test_message_passing_hooks():
+def test_message_passing_hooks(device):
     conv = MyConv(8, 32)
 
     x = torch.randn(4, 8)
@@ -471,7 +486,7 @@ def test_message_passing_hooks():
     out2 = conv(x, adj.t())
     assert num_pre_hook_calls == 5
     assert num_hook_calls == 5
-    assert torch.allclose(out1, out2, atol=1e-6)
+    assert torch.allclose(out1, out2)
 
     handle1.remove()
     assert len(conv._propagate_forward_pre_hooks) == 0
@@ -506,7 +521,7 @@ def test_message_passing_hooks():
     out2 = conv(x, adj.t())
     assert num_pre_hook_calls == 7
     assert num_hook_calls == 7
-    assert torch.allclose(out1, out2, atol=1e-6)
+    assert torch.allclose(out1, out2)
 
     handle1.remove()
     assert len(conv._propagate_forward_pre_hooks) == 0
@@ -514,7 +529,7 @@ def test_message_passing_hooks():
     assert len(conv._propagate_forward_hooks) == 0
 
 
-def test_modified_message_passing_hook():
+def test_modified_message_passing_hook(device):
     conv = MyConv(8, 32)
 
     x = torch.randn(4, 8)
@@ -533,7 +548,7 @@ def test_modified_message_passing_hook():
     conv.register_message_forward_hook(hook)
 
     out2 = conv(x, edge_index, edge_weight)
-    assert not torch.allclose(out1, out2, atol=1e-6)
+    assert not torch.allclose(out1, out2)
 
 
 class MyDefaultArgConv(MessagePassing):
@@ -548,7 +563,7 @@ class MyDefaultArgConv(MessagePassing):
         return x_j * 0 if zeros else x_j
 
 
-def test_my_default_arg_conv():
+def test_my_default_arg_conv(device):
     x = torch.randn(4, 1)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
     adj1 = to_torch_csc_tensor(edge_index, size=(4, 4))
@@ -586,7 +601,7 @@ class MyMultipleOutputConv(MessagePassing):
         return inputs
 
 
-def test_tuple_output():
+def test_tuple_output(device):
     conv = MyMultipleOutputConv()
 
     x = torch.randn(4, 8)
@@ -596,7 +611,7 @@ def test_tuple_output():
     assert isinstance(out1, tuple) and len(out1) == 2
 
 
-def test_tuple_output_jit():
+def test_tuple_output_jit(device):
     conv = MyMultipleOutputConv()
 
     x = torch.randn(4, 8)
@@ -620,7 +635,7 @@ class MyExplainConv(MessagePassing):
         return self.propagate(edge_index, x=x)
 
 
-def test_explain_message():
+def test_explain_message(device):
     x = torch.randn(4, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
 
@@ -666,7 +681,7 @@ class MyAggregatorConv(MessagePassing):
     aggr.PowerMeanAggregation(),
     aggr.MultiAggregation(['mean', 'max'])
 ])
-def test_message_passing_with_aggr_module(aggr_module):
+def test_message_passing_with_aggr_module(aggr_module, device):
     x = torch.randn(4, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]])
     row, col = edge_index
@@ -683,7 +698,7 @@ def test_message_passing_with_aggr_module(aggr_module):
         assert torch.allclose(conv(x, adj2.t()), out)
 
 
-def test_message_passing_int32_edge_index():
+def test_message_passing_int32_edge_index(device):
     # Check that we can dispatch an int32 edge_index up to aggregation
     x = torch.randn(4, 8)
     edge_index = torch.tensor([[0, 1, 2, 3], [0, 0, 1, 1]], dtype=torch.int32)
@@ -703,7 +718,7 @@ def test_message_passing_int32_edge_index():
 
 
 @pytest.mark.parametrize('num_nodes', [4, 8, 2, 0])
-def test_traceable_my_conv_with_self_loops(num_nodes):
+def test_traceable_my_conv_with_self_loops(num_nodes, device):
     # `torch.jit.trace` a `MessagePassing` layer that adds self loops and test
     # it across different input sizes.
     x = torch.randn(4, 16)
@@ -730,7 +745,7 @@ def test_traceable_my_conv_with_self_loops(num_nodes):
     assert torch.allclose(out, scripted_out)
 
 
-def test_pickle(tmp_path):
+def test_pickle(tmp_path, device):
     path = osp.join(tmp_path, 'model.pt')
     model = GATConv(16, 32)
     torch.save(model, path)
@@ -753,7 +768,7 @@ class MyOptionalEdgeAttrConv(MessagePassing):
         return x_j if edge_attr is None else x_j * edge_attr.view(-1, 1)
 
 
-def test_my_optional_edge_attr_conv():
+def test_my_optional_edge_attr_conv(device):
     conv = MyOptionalEdgeAttrConv()
 
     x = torch.randn(4, 8)

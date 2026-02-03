@@ -9,6 +9,7 @@ from torch_geometric.typing import Adj, PairTensor, SparseTensor
 from torch_geometric.utils import spmm
 
 
+@torch.compile
 class SignedConv(MessagePassing):
     r"""The signed graph convolutional operator from the `"Signed Graph
     Convolutional Network" <https://arxiv.org/abs/1808.06354>`_ paper.

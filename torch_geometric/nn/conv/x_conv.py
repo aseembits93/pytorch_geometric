@@ -19,6 +19,7 @@ else:
     knn_graph = None
 
 
+@torch.compile
 class XConv(torch.nn.Module):
     r"""The convolutional operator on :math:`\mathcal{X}`-transformed points
     from the `"PointCNN: Convolution On X-Transformed Points"

@@ -11,6 +11,7 @@ from torch_geometric.nn.resolver import activation_resolver
 from torch_geometric.typing import Adj
 
 
+@torch.compile
 class AntiSymmetricConv(torch.nn.Module):
     r"""The anti-symmetric graph convolutional operator from the
     `"Anti-Symmetric DGN: a stable architecture for Deep Graph Networks"

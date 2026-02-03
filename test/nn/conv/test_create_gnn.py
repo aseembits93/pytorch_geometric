@@ -1,8 +1,25 @@
+import pytest
 import torch
 
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import add_self_loops, degree
 
+
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
 
 class GCNConv(MessagePassing):
     def __init__(self, in_channels, out_channels):
@@ -28,7 +45,7 @@ class GCNConv(MessagePassing):
         return aggr_out
 
 
-def test_create_gnn():
+def test_create_gnn(device):
     conv = GCNConv(16, 32)
     x = torch.randn(5, 16)
     edge_index = torch.randint(5, (2, 64), dtype=torch.long)

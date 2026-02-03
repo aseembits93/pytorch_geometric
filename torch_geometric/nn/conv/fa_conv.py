@@ -1,6 +1,7 @@
 import typing
 from typing import Optional, Tuple, Union
 
+import torch
 import torch.nn.functional as F
 from torch import Tensor
 
@@ -24,6 +25,7 @@ else:
     from torch.jit import _overload_method as overload
 
 
+@torch.compile
 class FAConv(MessagePassing):
     r"""The Frequency Adaptive Graph Convolution operator from the
     `"Beyond Low-Frequency Information in Graph Convolutional Networks"

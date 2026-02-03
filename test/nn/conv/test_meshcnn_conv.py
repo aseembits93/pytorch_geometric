@@ -5,6 +5,22 @@ from torch.nn import Linear, ModuleList, Sequential, Sigmoid
 from torch_geometric.nn import MeshCNNConv
 
 
+
+# Fixed input shapes for all tests
+NUM_NODES = 100
+IN_CHANNELS = 64
+OUT_CHANNELS = 64
+NUM_EDGES = 500
+
+pytestmark = pytest.mark.cuda
+
+
+@pytest.fixture
+def device():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    return torch.device('cuda')
+
 @pytest.mark.parametrize('in_channels, out_channels', [
     (1, 1),
     (1, 2),
@@ -12,7 +28,7 @@ from torch_geometric.nn import MeshCNNConv
     (8, 3),
     (42, 40),
 ])
-def test_meshcnn_conv(in_channels: int, out_channels: int):
+def test_meshcnn_conv(in_channels: int, out_channels: int, device):
     # m = (V, F), shape [|V| x 3, 3 * |F|]
     # The simplest manifold triangular mesh is a tetrahedron
     E_cardinality = 6  # |E|, the number of edges

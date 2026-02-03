@@ -1,5 +1,6 @@
 from typing import Optional
 
+import torch
 import torch.nn.functional as F
 from torch import Tensor
 
@@ -10,6 +11,7 @@ from torch_geometric.utils import is_torch_sparse_tensor, spmm, to_edge_index
 from torch_geometric.utils.sparse import set_sparse_value
 
 
+@torch.compile
 class APPNP(MessagePassing):
     r"""The approximate personalized propagation of neural predictions layer
     from the `"Predict then Propagate: Graph Neural Networks meet Personalized

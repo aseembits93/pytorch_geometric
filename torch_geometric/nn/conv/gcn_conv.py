@@ -42,6 +42,7 @@ def gcn_norm(  # noqa: F811
     pass
 
 
+@torch.compile
 def gcn_norm(  # noqa: F811
     edge_index: Adj,
     edge_weight: OptTensor = None,
@@ -113,6 +114,7 @@ def gcn_norm(  # noqa: F811
     return edge_index, edge_weight
 
 
+@torch.compile
 class GCNConv(MessagePassing):
     r"""The graph convolutional operator from the `"Semi-supervised
     Classification with Graph Convolutional Networks"

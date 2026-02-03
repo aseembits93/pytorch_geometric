@@ -10,6 +10,7 @@ from torch_geometric.typing import EdgeType, NodeType
 from torch_geometric.utils.hetero import check_add_self_loops
 
 
+@torch.compile
 def group(xs: List[Tensor], aggr: Optional[str]) -> Optional[Tensor]:
     if len(xs) == 0:
         return None
@@ -26,6 +27,7 @@ def group(xs: List[Tensor], aggr: Optional[str]) -> Optional[Tensor]:
         return out
 
 
+@torch.compile
 class HeteroConv(torch.nn.Module):
     r"""A generic wrapper for computing graph convolution on heterogeneous
     graphs.

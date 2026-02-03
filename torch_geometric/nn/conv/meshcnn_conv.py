@@ -10,6 +10,7 @@ from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.typing import Tensor
 
 
+@torch.compile
 class MeshCNNConv(MessagePassing):
     r"""The convolutional layer introduced by the paper
     `"MeshCNN: A Network With An Edge" <https://arxiv.org/abs/1809.05910>`_.
