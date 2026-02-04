@@ -189,6 +189,25 @@ except Exception as e:
 
         def rowcount(self) -> Tensor:
             raise ImportError("'SparseStorage' requires 'torch-sparse'")
+        def __init__(
+            self,
+            row: Optional[Tensor] = None,
+            rowptr: Optional[Tensor] = None,
+            col: Optional[Tensor] = None,
+            value: Optional[Tensor] = None,
+            sparse_sizes: Optional[Tuple[Optional[int], Optional[int]]] = None,
+            rowcount: Optional[Tensor] = None,
+            colptr: Optional[Tensor] = None,
+            colcount: Optional[Tensor] = None,
+            csr2csc: Optional[Tensor] = None,
+            csc2csr: Optional[Tensor] = None,
+            is_sorted: bool = False,
+            trust_data: bool = False,
+        ):
+            raise ImportError("'SparseStorage' requires 'torch-sparse'")
+
+        def rowcount(self) -> Tensor:
+            raise ImportError("'SparseStorage' requires 'torch-sparse'")
 
     class SparseTensor:  # type: ignore
         def __init__(
@@ -256,6 +275,17 @@ except Exception as e:
             self,
             dtype: Optional[torch.dtype] = None,
         ) -> Tensor:
+            raise ImportError("'SparseTensor' requires 'torch-sparse'")
+        def __init__(
+            self,
+            row: Optional[Tensor] = None,
+            rowptr: Optional[Tensor] = None,
+            col: Optional[Tensor] = None,
+            value: Optional[Tensor] = None,
+            sparse_sizes: Optional[Tuple[Optional[int], Optional[int]]] = None,
+            is_sorted: bool = False,
+            trust_data: bool = False,
+        ):
             raise ImportError("'SparseTensor' requires 'torch-sparse'")
 
     class torch_sparse:  # type: ignore
@@ -341,6 +371,40 @@ NodeOrEdgeType = Union[NodeType, EdgeType]
 
 DEFAULT_REL = 'to'
 EDGE_TYPE_STR_SPLIT = '__'
+
+class SparseStorage:
+    def __init__(
+        self,
+        row: Optional[Tensor] = None,
+        rowptr: Optional[Tensor] = None,
+        col: Optional[Tensor] = None,
+        value: Optional[Tensor] = None,
+        sparse_sizes: Optional[Tuple[Optional[int], Optional[int]]] = None,
+        rowcount: Optional[Tensor] = None,
+        colptr: Optional[Tensor] = None,
+        colcount: Optional[Tensor] = None,
+        csr2csc: Optional[Tensor] = None,
+        csc2csr: Optional[Tensor] = None,
+        is_sorted: bool = False,
+        trust_data: bool = False,
+    ):
+        raise ImportError("'SparseStorage' requires 'torch-sparse'")
+
+    def rowcount(self) -> Tensor:
+        raise ImportError("'SparseStorage' requires 'torch-sparse'")
+
+class SparseTensor:
+    def __init__(
+        self,
+        row: Optional[Tensor] = None,
+        rowptr: Optional[Tensor] = None,
+        col: Optional[Tensor] = None,
+        value: Optional[Tensor] = None,
+        sparse_sizes: Optional[Tuple[Optional[int], Optional[int]]] = None,
+        is_sorted: bool = False,
+        trust_data: bool = False,
+    ):
+        raise ImportError("'SparseTensor' requires 'torch-sparse'")
 
 
 class EdgeTypeStr(str):
@@ -435,3 +499,5 @@ if WITH_PT24:
         MockTorchCSCTensor,
         EdgeTypeStr,
     ])
+
+pass
