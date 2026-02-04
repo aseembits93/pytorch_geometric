@@ -101,15 +101,51 @@ class MFConv(MessagePassing):
         # propagate_type: (x: OptPairTensor)
         h = self.propagate(edge_index, x=x, size=size)
 
-        out = h.new_empty(list(h.size())[:-1] + [self.out_channels])
-        for i, (lin_l, lin_r) in enumerate(zip(self.lins_l, self.lins_r)):
-            idx = (deg == i).nonzero().view(-1)
-            r = lin_l(h.index_select(self.node_dim, idx))
+        weight_l = torch.stack([lin.weight for lin in self.lins_l], dim=0)
+        bias_l = torch.stack([
+            lin.bias if lin.bias is not None else lin.weight.new_zeros((self.out_channels,))
+            for lin in self.lins_l
+        ], dim=0)
+        weight_r = torch.stack([lin.weight for lin in self.lins_r], dim=0)
 
-            if x_r is not None:
-                r = r + lin_r(x_r.index_select(self.node_dim, idx))
+        node_dim = self.node_dim if self.node_dim >= 0 else (h.dim() + self.node_dim)
+        h = h.movedim(node_dim, 0)
 
-            out.index_copy_(self.node_dim, idx, r)
+        N = h.size(0)
+        in_l = h.size(-1)
+        rest_shape = h.size()[1:-1]
+        rest_numel = 1
+        for s in rest_shape:
+            rest_numel *= s
+        
+        if rest_numel == 1:
+            h_flat = h.reshape(N, in_l)
+            deg_expanded = deg
+        else:
+            h_flat = h.reshape(N * rest_numel, in_l)
+            deg_expanded = deg.repeat_interleave(rest_numel)
+
+        Wl_nodes = weight_l[deg_expanded]
+        out_flat = torch.einsum('noi,ni->no', Wl_nodes, h_flat)
+        out_flat += bias_l[deg_expanded]
+
+        if x_r is not None:
+            xr = x_r.movedim(node_dim, 0)
+            xr_in = xr.size(-1)
+            if rest_numel == 1:
+                xr_flat = xr.reshape(N, xr_in)
+            else:
+                xr_flat = xr.reshape(N * rest_numel, xr_in)
+
+            Wr_nodes = weight_r[deg_expanded]
+            out_flat = out_flat + torch.einsum('noi,ni->no', Wr_nodes, xr_flat)
+
+        if rest_numel == 1:
+            out_moved = out_flat.reshape(N, self.out_channels)
+        else:
+            out_moved = out_flat.reshape((N, ) + rest_shape + (self.out_channels,))
+
+        out = out_moved.movedim(0, node_dim)
 
         return out
 
