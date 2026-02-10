@@ -145,7 +145,8 @@ class PerformerAttention(torch.nn.Module):
         self.dropout = torch.nn.Dropout(dropout)
 
     def forward(self, x: Tensor, mask: Optional[Tensor] = None) -> Tensor:
-        r"""Forward pass.
+        """Forward pass.
+
 
         Args:
             x (torch.Tensor): Node feature tensor
@@ -157,12 +158,14 @@ class PerformerAttention(torch.nn.Module):
                 the valid nodes for each graph. (default: :obj:`None`)
         """
         B, N, *_ = x.shape
-        q, k, v = self.q(x), self.k(x), self.v(x)
+        q = self.q(x)
+        k = self.k(x)
+        v = self.v(x)
         # Reshape and permute q, k and v to proper shape
         # (B, N, num_heads * head_channels) to (b, num_heads, n, head_channels)
-        q, k, v = map(
-            lambda t: t.reshape(B, N, self.heads, self.head_channels).permute(
-                0, 2, 1, 3), (q, k, v))
+        q = q.reshape(B, N, self.heads, self.head_channels).permute(0, 2, 1, 3)
+        k = k.reshape(B, N, self.heads, self.head_channels).permute(0, 2, 1, 3)
+        v = v.reshape(B, N, self.heads, self.head_channels).permute(0, 2, 1, 3)
         if mask is not None:
             mask = mask[:, None, :, None]
             v.masked_fill_(~mask, 0.)
